@@ -16,7 +16,7 @@ brew install ffmpeg
 
 uv pip install -e .
 
-pip install 'lerobot[feetech]'
+uv pip install 'lerobot[feetech]'
 ```
 
 
