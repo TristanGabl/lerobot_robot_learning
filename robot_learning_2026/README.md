@@ -12,6 +12,13 @@ lerobot-calibrate --robot.type=so101_follower --robot.port=/dev/tty.usbmodem5B14
 lerobot-calibrate --teleop.type=so101_leader --teleop.port=/dev/tty.usbmodem5B140317801 --teleop.id=my_awesome_leader_arm                           
 ```
 
+can skip calibration, but have to copy calibration files
+```
+copy robot_learning_2026/my_awesome_follower_arm.json to /.cache/huggingface/lerobot/calibration/robots/so_follower/my_awesome_follower_arm.json
+
+copy robot_learning_2026/my_awesome_leader_arm.json to /Users/trgabl/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/my_awesome_leader_arm.json
+```
+
 teleoperation (with camera rotation corrected):
 ```
 lerobot-teleoperate --robot.type=so101_follower --robot.port=/dev/tty.usbmodem5B141126191 \
