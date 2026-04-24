@@ -1,3 +1,24 @@
+repo install
+```
+uv python install 3.12
+uv venv --python 3.12
+
+# Linux/macOS
+source .venv/bin/activate
+# Windows PowerShell
+.venv\Scripts\activate
+
+# Ubuntu/Debian
+sudo apt install ffmpeg
+
+# macOS (Apple Silicon)
+brew install ffmpeg
+
+uv pip install -e .
+
+pip install 'lerobot[feetech]'
+```
+
 
 controllers:
 ```
