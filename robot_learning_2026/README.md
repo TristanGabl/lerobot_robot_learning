@@ -20,7 +20,7 @@ uv pip install 'lerobot[feetech]'
 ```
 
 
-controllers:
+controllers (Tristan, macos):
 ```
 Leader Arm:     /dev/tty.usbmodem5B140317801
 Follower arm:   /dev/tty.usbmodem5B141126191
