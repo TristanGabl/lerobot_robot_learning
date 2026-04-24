@@ -35,9 +35,9 @@ lerobot-calibrate --teleop.type=so101_leader --teleop.port=/dev/tty.usbmodem5B14
 
 can skip calibration, but have to copy calibration files
 ```
-copy robot_learning_2026/my_awesome_follower_arm.json to /.cache/huggingface/lerobot/calibration/robots/so_follower/my_awesome_follower_arm.json
+cp robot_learning_2026/my_awesome_follower_arm.json ~/.cache/huggingface/lerobot/calibration/robots/so_follower/my_awesome_follower_arm.json
 
-copy robot_learning_2026/my_awesome_leader_arm.json to /Users/trgabl/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/my_awesome_leader_arm.json
+cp robot_learning_2026/my_awesome_leader_arm.json ~/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/my_awesome_leader_arm.json
 ```
 
 teleoperation (with camera rotation corrected):
