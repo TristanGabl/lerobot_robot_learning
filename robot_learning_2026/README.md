@@ -6,6 +6,13 @@
 Create a virtual environment and install dependencies:
 
 ```bash
+# all in one (inludeds dependencies for Asynchronous Inference)
+brew install ffmpeg   # macOS (one-time system dep)
+uv sync --locked --extra feetech --extra diffusion --extra training --extra async --extra test --extra dev
+```
+
+or split up
+```bash
 uv python install 3.12
 uv venv --python 3.12
 
