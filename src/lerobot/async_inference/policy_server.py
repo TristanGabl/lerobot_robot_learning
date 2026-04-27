@@ -330,6 +330,10 @@ class PolicyServer(services_pb2_grpc.AsyncInferenceServicer):
         # individual camera keys. Stack the per-camera tensors into that combined key and
         # populate the queues so predict_action_chunk can read from them.
         if hasattr(self.policy, "_queues") and self.policy._queues is not None:
+            self.logger.info(f"[DEBUG] observation keys: {list(observation.keys())}")
+            self.logger.info(f"[DEBUG] image_features keys: {list(self.policy.config.image_features.keys())}")
+            for k, v in observation.items():
+                self.logger.info(f"[DEBUG]   {k}: {type(v).__name__} {getattr(v, 'shape', '')}")
             if self.policy.config.image_features:
                 obs_for_policy[OBS_IMAGES] = torch.stack(
                     [observation[key] for key in self.policy.config.image_features], dim=-4
