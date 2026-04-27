@@ -60,6 +60,8 @@ from .helpers import (
     raw_observation_to_observation,
 )
 
+from lerobot.policies.utils import populate_queues
+from lerobot.utils.constants import OBS_IMAGES
 
 class PolicyServer(services_pb2_grpc.AsyncInferenceServicer):
     prefix = "policy_server"
@@ -321,7 +323,20 @@ class PolicyServer(services_pb2_grpc.AsyncInferenceServicer):
 
     def _get_action_chunk(self, observation: dict[str, torch.Tensor]) -> torch.Tensor:
         """Get an action chunk from the policy. The chunk contains only"""
-        chunk = self.policy.predict_action_chunk(observation)
+
+        obs_for_policy = dict(observation)
+
+        # Policies like DiffusionPolicy use internal queues keyed by OBS_IMAGES rather than
+        # individual camera keys. Stack the per-camera tensors into that combined key and
+        # populate the queues so predict_action_chunk can read from them.
+        if hasattr(self.policy, "_queues") and self.policy._queues is not None:
+            if self.policy.config.image_features:
+                obs_for_policy[OBS_IMAGES] = torch.stack(
+                    [observation[key] for key in self.policy.config.image_features], dim=-4
+                )
+            self.policy._queues = populate_queues(self.policy._queues, obs_for_policy)
+
+        chunk = self.policy.predict_action_chunk(obs_for_policy)
         if chunk.ndim != 3:
             chunk = chunk.unsqueeze(0)  # adding batch dimension, now shape is (B, chunk_size, action_dim)
 
