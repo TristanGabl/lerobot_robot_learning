@@ -139,3 +139,8 @@ lerobot-record \
   --policy.path=outputs/train/diffusion_full/checkpoints/last/pretrained_model \
   --policy.num_inference_steps=5
 ```
+
+## 5. Develop custom policy
+Develop custo policy from scratch (for future reference, now we can just modify the basic diffusion directly)
+
+https://huggingface.co/docs/lerobot/en/bring_your_own_policies 
