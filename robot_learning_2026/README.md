@@ -116,8 +116,8 @@ To train basic BC use:
   --job_name=act_test \
   --policy.device=cuda \
   --wandb.enable=false \
-  --batch_size=1\
-  --steps=1 \
+  --batch_size=4\
+  --steps=2000 \
   --policy.push_to_hub=false \
   --policy.n_action_steps=8 \
   --policy.optimizer_lr=1e-4
