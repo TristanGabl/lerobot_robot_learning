@@ -324,16 +324,14 @@ class PolicyServer(services_pb2_grpc.AsyncInferenceServicer):
     def _get_action_chunk(self, observation: dict[str, torch.Tensor]) -> torch.Tensor:
         """Get an action chunk from the policy. The chunk contains only"""
 
-        obs_for_policy = dict(observation)
+        # Keep only observation tensors — the preprocessor adds action/reward/done keys via
+        # transition_to_batch which would corrupt the policy's internal queues with None values.
+        obs_for_policy = {k: v for k, v in observation.items() if isinstance(v, torch.Tensor) and k.startswith("observation.")}
 
         # Policies like DiffusionPolicy use internal queues keyed by OBS_IMAGES rather than
         # individual camera keys. Stack the per-camera tensors into that combined key and
         # populate the queues so predict_action_chunk can read from them.
         if hasattr(self.policy, "_queues") and self.policy._queues is not None:
-            self.logger.info(f"[DEBUG] observation keys: {list(observation.keys())}")
-            self.logger.info(f"[DEBUG] image_features keys: {list(self.policy.config.image_features.keys())}")
-            for k, v in observation.items():
-                self.logger.info(f"[DEBUG]   {k}: {type(v).__name__} {getattr(v, 'shape', '')}")
             if self.policy.config.image_features:
                 obs_for_policy[OBS_IMAGES] = torch.stack(
                     [observation[key] for key in self.policy.config.image_features], dim=-4
