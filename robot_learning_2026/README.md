@@ -122,7 +122,7 @@ lerobot-train \
   --policy.push_to_hub=false \
   --policy.n_action_steps=8 \
   --policy.optimizer_lr=1e-4
-``
+```
 
 
 Train a diffusion policy on the collected dataset:
