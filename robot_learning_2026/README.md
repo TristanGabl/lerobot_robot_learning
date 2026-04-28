@@ -141,21 +141,6 @@ lerobot-train \
 ```
 *Optional: Add `--dataset.episodes="[0,1,2]"` if you only want to train on a specific subset of recordings.*
 
-immitation learning
-```bash
-lerobot-train \
-  --dataset.repo_id=local/rl_folding \
-  --dataset.root=/robot_learning_2026/clompa_dummy_data \
-  --policy.type=act \
-  --output_dir=outputs/train/act_test \
-  --job_name=act_test \
-  --policy.device=cuda \
-  --wandb.enable=false \
-  --batch_size=1\
-  --steps=1 \
-  --policy.push_to_hub=false \
-```
-
 We can use directly DiT for training, which supports both diffusion and flow matching. For example we can train diffusion with:
 
 ```
