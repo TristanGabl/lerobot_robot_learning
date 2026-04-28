@@ -154,7 +154,7 @@ lerobot-train \
   --batch_size=1\
   --steps=1 \
   --policy.push_to_hub=false \
-
+```
 
 We can use directly DiT for training, which supports both diffusion and flow matching. For example we can train diffusion with:
 
