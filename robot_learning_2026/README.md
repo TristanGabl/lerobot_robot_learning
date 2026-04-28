@@ -122,6 +122,23 @@ lerobot-train \
 ```
 *Optional: Add `--dataset.episodes="[0,1,2]"` if you only want to train on a specific subset of recordings.*
 
+immitation learning
+```bash
+lerobot-train \
+  --dataset.repo_id=local/rl_folding \
+  --dataset.root=/robot_learning_2026/clompa_dummy_data \
+  --policy.type=act \
+  --output_dir=outputs/train/act_test \
+  --job_name=act_test \
+  --policy.device=cuda \
+  --wandb.enable=false \
+  --batch_size=1\
+  --steps=1 \
+  --policy.push_to_hub=false \
+  --policy.n_action_steps=8 \
+  --policy.optimizer_lr=1e-4
+```
+
 ### Inference
 Once trained, run the model on the robot. (**Warning:** CPU inference is very unstable and slow, use GPU).
 ```bash
@@ -158,6 +175,7 @@ python -m lerobot.async_inference.robot_client \
     --aggregate_fn_name=weighted_average \
     --debug_visualize_queue_size=True
 ```
+
 ## 5. Develop custom policy
 Develop custo policy from scratch (for future reference, now we can just modify the basic diffusion directly)
 
