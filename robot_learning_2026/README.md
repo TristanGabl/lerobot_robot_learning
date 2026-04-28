@@ -26,7 +26,7 @@ sudo apt install ffmpeg    # Ubuntu/Debian
 
 # Install LeRobot and some additional features (you will probably have to install more)
 uv pip install -e .
-uv pip install 'lerobot[feetech,diffusion,dataset,training,viz]'
+uv pip install 'lerobot[feetech,diffusion,dataset,training, vize, multi_task_dit]'
 ```
 
 ## 2. Hardware Setup & Calibration
@@ -105,6 +105,25 @@ lerobot-replay \
 ```
 
 ## 4. Training and Inference
+(Change the training parameters in the following commands)
+
+To train basic BC run:
+```
+lerobot-train \
+  --dataset.repo_id=local/rl_folding \
+  --dataset.root=path_to/robot_learning_2026/clompa_dummy_data \
+  --policy.type=act \
+  --output_dir=outputs/train/act_test \
+  --job_name=act_test \
+  --policy.device=cuda \
+  --wandb.enable=false \
+  --batch_size=1\
+  --steps=1 \
+  --policy.push_to_hub=false \
+  --policy.n_action_steps=8 \
+  --policy.optimizer_lr=1e-4
+```
+
 
 Train a diffusion policy on the collected dataset:
 ```bash
@@ -135,9 +154,32 @@ lerobot-train \
   --batch_size=1\
   --steps=1 \
   --policy.push_to_hub=false \
+
+
+We can use directly DiT for training, which supports both diffusion and flow matching. For example we can train diffusion with:
+
+```
+lerobot-train \
+  --dataset.repo_id=local/rl_folding \
+  --dataset.root=/robot_learning_2026/clompa_dummy_data \
+  --policy.type=multi_task_dit \
+  --output_dir=outputs/train/dit_test \
+  --job_name=dit_test \
+  --policy.device=cuda \
+  --wandb.enable=false \
+  --batch_size=4 \
+  --steps=20000 \
+  --policy.push_to_hub=false \
+  --policy.num_train_timesteps=100 \
+  --policy.num_inference_steps=10 \
+  --policy.horizon=16 \
   --policy.n_action_steps=8 \
   --policy.optimizer_lr=1e-4
 ```
+
+NOTE: doublecheck + checkout documentation
+https://huggingface.co/docs/lerobot/multi_task_dit
+  
 
 ### Inference
 Once trained, run the model on the robot. (**Warning:** CPU inference is very unstable and slow, use GPU).
