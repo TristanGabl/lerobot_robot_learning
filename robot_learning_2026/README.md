@@ -26,7 +26,7 @@ sudo apt install ffmpeg    # Ubuntu/Debian
 
 # Install LeRobot and some additional features (you will probably have to install more)
 uv pip install -e .
-uv pip install 'lerobot[feetech,diffusion,dataset,training, vize, multi_task_dit]'
+uv pip install 'lerobot[feetech,diffusion,dataset,training, viz, multi_task_dit]'
 ```
 
 ## 2. Hardware Setup & Calibration

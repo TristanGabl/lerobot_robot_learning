@@ -13,6 +13,8 @@
 # limitations under the License.
 
 ### Environments & Dependencies ###
+train_gpu
+scripts_local
 .env
 .venv
 env/
