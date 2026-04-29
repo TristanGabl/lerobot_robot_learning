@@ -161,6 +161,7 @@ wandb/
 
 # Dev scripts
 .dev/
+scripts_local/
 
 # Data folders
 # data/
