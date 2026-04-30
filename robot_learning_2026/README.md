@@ -129,10 +129,15 @@ lerobot-replay \
 ## 4. Training and Inference
 (Change the training parameters in the following commands)
 
+
+
 ```bash
 train_diff.sh #train diffusion policy
 train_act.sh #train act policy
 ```
+for viewing tracking training metrics:
+https://wandb.ai/derRoboter/derRoboter?nw=nwuserslochmann
+
 or
 
 To train basic BC run:
