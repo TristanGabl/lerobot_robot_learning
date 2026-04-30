@@ -94,6 +94,8 @@ lerobot-teleoperate \
 ```bash
 record.sh
 ```
+data is logged at https://huggingface.co/slochmann
+
 or
 
 ```bash
@@ -137,6 +139,9 @@ train_act.sh #train act policy
 ```
 for viewing tracking training metrics:
 https://wandb.ai/derRoboter/derRoboter?nw=nwuserslochmann
+for uploading checkpoints:
+https://huggingface.co/slochmann
+
 
 or
 
@@ -204,6 +209,7 @@ Once trained, run the model on the robot. (**Warning:** CPU inference is very un
 
 ```bash
 infer_act.sh #action policy inference
+infer_diff.sh #diffusion policy inference, automatically downloads policy from hf
 ```
 or
 ```bash
