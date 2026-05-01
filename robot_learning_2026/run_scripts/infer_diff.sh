@@ -17,7 +17,7 @@ lerobot-record \
   --policy.use_amp=true \
   --policy.path="slochmann/diffusion-grab" \
   --policy.device=cuda \
-  --policy.n_action_steps=64 \
+  --policy.n_action_steps=100 \
   --dataset.fps=15 \
-  --policy.num_inference_steps=50
+  --policy.num_inference_steps=25
 
