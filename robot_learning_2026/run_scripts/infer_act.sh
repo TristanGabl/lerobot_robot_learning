@@ -12,11 +12,12 @@ lerobot-record \
   --dataset.streaming_encoding=true \
   --dataset.encoder_threads=6 \
   --dataset.repo_id=local/eval_grab_act10k_$(date +%Y%m%d_%H%M%S) \
+  --dataset.push_to_hub=false \
   --dataset.num_episodes=1 \
   --policy.use_amp=true \
   --policy.path="/home/seb/MSc/lerobot_robot_learning/outputs/train/act_grab10k/checkpoints/010000/pretrained_model" \
   --policy.device=cuda \
+  --interpolation_multiplier=2 \
+  --dataset.fps=60 \
   --policy.n_action_steps=100
-  
-  #--policy.num_inference_steps=10
 
