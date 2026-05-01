@@ -2,11 +2,10 @@
 
 lerobot-train \
   --dataset.repo_id="slochmann/50_fold" \
-  --dataset.root="/home/ubuntu/lerobot_robot_learning/robot_learning_2026/50_corner_grab" \
   --policy.type="diffusion" \
-  --policy.repo_id="slochmann/diffusion_grab" \
-  --output_dir=outputs/train/diffusion_grab_$(date +%Y%m%d_%H%M%S) \
-  --job_name=diffusion_grab \
+  --policy.repo_id="slochmann/diffusion_fold" \
+  --output_dir=outputs/train/diffusion_fold_$(date +%Y%m%d_%H%M%S) \
+  --job_name=diffusion_fold \
   --policy.device=cuda \
   --wandb.enable=true \
   --wandb.project=derRoboter \

@@ -134,8 +134,9 @@ lerobot-replay \
 
 
 ```bash
-train_diff.sh #train diffusion policy
-train_act.sh #train act policy
+train_diff.sh #train diffusion policy, ~1h for 50k steps (20M params)
+train_DiT.sh # train DiT policy, hyperparams not tuned
+train_act.sh # train action policy (simple, small, fast, not allowed)
 ```
 for viewing tracking training metrics:
 https://wandb.ai/derRoboter/derRoboter?nw=nwuserslochmann

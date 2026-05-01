@@ -1,24 +1,14 @@
-# Train a diffusion policy on the collected dataset
-
-param(
-    [string]$Dataset = "grab-task",
-    [string]$Root = "robot_learning_2026/50_corner_grab",
-    [string]$OutputDir = "outputs/train/act_grab10k",
-    [string]$JobName = "act",
-    [int]$BatchSize = 4,
-    [int]$Steps = 10000,
-    [string]$Policy = "act"
-)
-
 lerobot-train \
-  --dataset.repo_id="local/$Dataset" \
-  --dataset.root=$Root \
-  --policy.type=$Policy \
-  --policy.repo_id="local/$JobName" \
-  --output_dir=$OutputDir \
-  --job_name=$JobName \
+  --dataset.repo_id="slochmann/50_fold" \
+  --policy.type="act" \
+  --policy.repo_id="slochmann/act_fold" \
+  --output_dir=outputs/train/act_fold_$(date +%Y%m%d_%H%M%S) \
+  --job_name=act_fold \
   --policy.device=cuda \
   --wandb.enable=true \
-  --batch_size=$BatchSize \
-  --steps=$Steps \
+  --wandb.project=derRoboter \
+  --batch_size=8 \
+  --steps=10000 \
+  --policy.use_amp=true \
+  --num_workers=8 \
   --policy.push_to_hub=true

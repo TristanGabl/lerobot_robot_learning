@@ -9,7 +9,8 @@ lerobot-train \
   --policy.objective=diffusion \
   --policy.noise_scheduler_type=DDPM \
   --policy.num_train_timesteps=100 \
-  --batch_size=320 \
+  --policy.use_amp=true \
+  --batch_size=200 \
   --steps=30000 \
   --policy.repo_id="slochmann/DiT_grab" \
   --output_dir=outputs/train/DiT_grab_$(date +%Y%m%d_%H%M%S) \
