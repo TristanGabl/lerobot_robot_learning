@@ -8,14 +8,14 @@ lerobot-record \
   --robot.type=so101_follower --robot.port='/dev/ttyACM1' --robot.id=my_awesome_follower_arm \
   --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 480, height: 640, fps: 30, rotation: -90}}" \
   --display_data=false \
-  --dataset.single_task="grab" \
+  --dataset.single_task="fold" \
   --dataset.streaming_encoding=true \
   --dataset.encoder_threads=6 \
-  --dataset.repo_id=local/eval_grab_act10k_$(date +%Y%m%d_%H%M%S) \
+  --dataset.repo_id=local/eval_fold_act_$(date +%Y%m%d_%H%M%S) \
   --dataset.push_to_hub=false \
   --dataset.num_episodes=1 \
   --policy.use_amp=true \
-  --policy.path="/home/seb/MSc/lerobot_robot_learning/outputs/train/act_grab10k/checkpoints/010000/pretrained_model" \
+  --policy.path="slochmann/act_fold" \
   --policy.device=cuda \
   --interpolation_multiplier=2 \
   --dataset.fps=60 \

@@ -52,7 +52,7 @@ Typical examples:
 sudo chmod 666 /dev/ttyACM0 /dev/ttyACM1
 ```
 
-### Calibration
+### Calibration (also in install.sh)
 If you already have calibration files, you can skip manual calibration:
 ```bash
 # Copy pre-existing configurations
@@ -67,6 +67,13 @@ lerobot-calibrate --teleop.type=so101_leader --teleop.port=path_to/leader_port -
 
 ## 3. Data Collection
 
+* the gripper must have *at least 6cm* distance from the towel when starting
+
+**Folding:**
+* the vertices have to match within *2cm* when folding 
+* fold from *right bottom corner to left top*, else the camera doesnt see the edge of the towel to match the vertices
+> read the email by simon sukup
+
 Before recording, find your camera's index via trial and error:
 ```bash
 lerobot-find-cameras opencv
@@ -78,14 +85,6 @@ Ensure the arms and cameras sync correctly (press `Ctrl+C` to exit):
 ```bash
 teleoperate.sh
 ```
-or
-```bash
-lerobot-teleoperate \
-  --robot.type=so101_follower --robot.port=path_to/follower_port --robot.id=my_awesome_follower_arm \
-  --teleop.type=so101_leader --teleop.port=path_to/leader_port --teleop.id=my_awesome_leader_arm \
-  --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 480, height: 640, fps: 30, rotation: -90}}" \
-  --display_data=true
-```
 
 ### Record Demonstrations
 
@@ -94,112 +93,37 @@ lerobot-teleoperate \
 ```bash
 record.sh
 ```
-data is logged at https://huggingface.co/slochmann
 
-or
-
-```bash
-lerobot-record \
-  --robot.type=so101_follower --robot.port=path_to/follower_port --robot.id=my_awesome_follower_arm \
-  --teleop.type=so101_leader --teleop.port=path_to/leader_port --teleop.id=my_awesome_leader_arm \
-  --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 480, height: 640, fps: 30, rotation: -90}}" \
-  --display_data=true \
-  --dataset.repo_id=local/record-test \
-  --dataset.num_episodes=10 \
-  --dataset.streaming_encoding=true \
-  --dataset.encoder_threads=2 \
-  --dataset.push_to_hub=false \
-  --dataset.root=robot_learning_2026/dummy_data \
-  --dataset.single_task="folding towel"
-```
-This saves trajectories in `.parquet` format with a single `.mp4` video containing all the recorded examples.
+This saves trajectories in `.parquet` format with a single `.mp4` video containing all the recorded examples to https://huggingface.co/slochmann
 
 ### Replay
 To verify the recorded behaviour, you can replay the trajectories:
 ```bash
 replay.sh
 ```
-or
-```bash
-lerobot-replay \
-  --robot.type=so101_follower --robot.port=path_to/follower_port --robot.id=my_awesome_follower_arm \
-  --dataset.repo_id=local/record-test \
-  --dataset.root=robot_learning_2026/dummy_data \
-  --dataset.episode=0
-```
 
 ## 4. Training and Inference
 (Change the training parameters in the following commands)
 
+compute instance **stop it again when done, limited credits**:
+https://brev.nvidia.com/org/org-3Cfc5RioM40O3xB9vb9LYO3QYfd/billing?openAddCredits=true
 
+*Compute is limited and charged by uptime, depending on your batch and model size you can train multiple policies in parallel. Smaller batchsize (e.g. 8) counterinutitively trains faster than larger here, at least for diffusion*
 
 ```bash
 train_diff.sh #train diffusion policy, ~1h for 50k steps (20M params)
 train_DiT.sh # train DiT policy, hyperparams not tuned
 train_act.sh # train action policy (simple, small, fast, not allowed)
 ```
-for viewing tracking training metrics:
-https://wandb.ai/derRoboter/derRoboter?nw=nwuserslochmann
-for uploading checkpoints:
+* checkpoints are pushed to:
 https://huggingface.co/slochmann
+* training metrics pushed to:
+https://wandb.ai/derRoboter/derRoboter?nw=nwuserslochmann
 
-
-or
-
-To train basic BC run:
-```
-lerobot-train \
-  --dataset.repo_id=local/rl_folding \
-  --dataset.root=path_to/robot_learning_2026/clompa_dummy_data \
-  --policy.type=act \
-  --output_dir=outputs/train/act_test \
-  --job_name=act_test \
-  --policy.device=cuda \
-  --wandb.enable=false \
-  --batch_size=1\
-  --steps=1 \
-  --policy.push_to_hub=false \
-  --policy.n_action_steps=8 \
-  --policy.optimizer_lr=1e-4
-```
-
-
-Train a diffusion policy on the collected dataset:
-```bash
-lerobot-train \
-  --dataset.repo_id=local/record-test \
-  --dataset.root=robot_learning_2026/dummy_data \
-  --policy.type=diffusion \
-  --output_dir=outputs/train/diffusion_full \
-  --job_name=diffusion_full \
-  --policy.device=cuda \
-  --wandb.enable=false \
-  --batch_size=4 \
-  --steps=2000 \
-  --policy.push_to_hub=false
-```
 *Optional: Add `--dataset.episodes="[0,1,2]"` if you only want to train on a specific subset of recordings.*
 
+>*have not trained this:*
 We can use directly DiT for training, which supports both diffusion and flow matching. For example we can train diffusion with:
-
-```
-lerobot-train \
-  --dataset.repo_id=local/rl_folding \
-  --dataset.root=/robot_learning_2026/clompa_dummy_data \
-  --policy.type=multi_task_dit \
-  --output_dir=outputs/train/dit_test \
-  --job_name=dit_test \
-  --policy.device=cuda \
-  --wandb.enable=false \
-  --batch_size=4 \
-  --steps=20000 \
-  --policy.push_to_hub=false \
-  --policy.num_train_timesteps=100 \
-  --policy.num_inference_steps=10 \
-  --policy.horizon=16 \
-  --policy.n_action_steps=8 \
-  --policy.optimizer_lr=1e-4
-```
 
 NOTE: doublecheck + checkout documentation
 https://huggingface.co/docs/lerobot/multi_task_dit
@@ -207,26 +131,10 @@ https://huggingface.co/docs/lerobot/multi_task_dit
 
 ### Inference
 Once trained, run the model on the robot. (**Warning:** CPU inference is very unstable and slow, use GPU).
-
+> *automatically downloads selected policy from hf*
 ```bash
 infer_act.sh #action policy inference
-infer_diff.sh #diffusion policy inference, automatically downloads policy from hf
-```
-or
-```bash
-lerobot-record \
-  --robot.type=so101_follower \
-  --robot.port=path_to/follower_port \
-  --robot.id=my_awesome_follower_arm \
-  --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 480, height: 640, fps: 30, rotation: -90}}" \
-  --display_data=false \
-  --dataset.single_task="folding towel" \
-  --dataset.streaming_encoding=true \
-  --dataset.encoder_threads=2 \
-  --dataset.repo_id=local/eval_rl_folding \
-  --dataset.num_episodes=1 \
-  --policy.path=outputs/train/diffusion_full/checkpoints/last/pretrained_model \
-  --policy.num_inference_steps=5
+infer_diff.sh #diffusion policy inference
 ```
 
 ### Async Inference
