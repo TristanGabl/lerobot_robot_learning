@@ -15,7 +15,7 @@ lerobot-record \
   --dataset.num_episodes=1 \
   --dataset.episode_time_s=90 \
   --policy.use_amp=true \
-  --policy.path="slochmann/diffusion_fold" \
+  --policy.path="DerBoroter/diffusion_fold" \
   --policy.device=cuda \
   --policy.n_action_steps=100 \
   --interpolation_multiplier=1 \

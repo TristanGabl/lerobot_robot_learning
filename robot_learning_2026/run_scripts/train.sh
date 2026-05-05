@@ -1,11 +1,10 @@
 # Train a diffusion policy on the collected dataset
 
 lerobot-train \
-  --dataset.repo_id="local/grab-task" \
-  --dataset.root="robot_learning_2026/50_corner_grab" \
+  --dataset.repo_id="DerBoroter/xyz" \
   --policy.type="diffusion" \
   --policy.repo_id="diffusion_grab" \
-  --output_dir=outputs/train/diffusion_grab \
+  --output_dir=DerBoroter/xyz \
   --job_name=diffusion_grab \
   --policy.device=cuda \
   --wandb.enable=true \

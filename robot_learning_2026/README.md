@@ -94,7 +94,7 @@ teleoperate.sh
 record.sh
 ```
 
-This saves trajectories in `.parquet` format with a single `.mp4` video containing all the recorded examples to https://huggingface.co/slochmann
+This saves trajectories in `.parquet` format with a single `.mp4` video containing all the recorded examples to https://huggingface.co/DerBoroter
 
 ### Replay
 To verify the recorded behaviour, you can replay the trajectories:
@@ -116,9 +116,9 @@ train_DiT.sh # train DiT policy, hyperparams not tuned
 train_act.sh # train action policy (simple, small, fast, not allowed)
 ```
 * checkpoints are pushed to:
-https://huggingface.co/slochmann
+https://huggingface.co/DerBoroter
 * training metrics pushed to:
-https://wandb.ai/derRoboter/derRoboter?nw=nwuserslochmann
+https://wandb.ai/derRoboter/derRoboter
 
 *Optional: Add `--dataset.episodes="[0,1,2]"` if you only want to train on a specific subset of recordings.*
 

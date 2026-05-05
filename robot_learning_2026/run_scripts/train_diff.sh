@@ -1,9 +1,9 @@
 # Train a diffusion policy on the collected dataset
 
 lerobot-train \
-  --dataset.repo_id="slochmann/50_fold" \
+  --dataset.repo_id="DerBoroter/50_fold" \
   --policy.type="diffusion" \
-  --policy.repo_id="slochmann/diffusion_fold" \
+  --policy.repo_id="DerBoroter/diffusion_fold" \
   --output_dir=outputs/train/diffusion_fold_$(date +%Y%m%d_%H%M%S) \
   --job_name=diffusion_fold \
   --policy.device=cuda \

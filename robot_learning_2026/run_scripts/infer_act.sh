@@ -15,7 +15,7 @@ lerobot-record \
   --dataset.push_to_hub=false \
   --dataset.num_episodes=1 \
   --policy.use_amp=true \
-  --policy.path="slochmann/act_fold" \
+  --policy.path="DerBoroter/act_fold" \
   --policy.device=cuda \
   --interpolation_multiplier=2 \
   --dataset.fps=60 \
