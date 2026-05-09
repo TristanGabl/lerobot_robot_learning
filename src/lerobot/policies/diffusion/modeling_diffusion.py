@@ -85,8 +85,14 @@ class DiffusionPolicy(PreTrainedPolicy):
 
         self.reset()
 
-    def get_optim_params(self) -> dict:
-        return self.diffusion.parameters()
+    def get_optim_params(self, lr) -> dict:
+        # return self.diffusion.parameters()
+        
+        return [
+            {"params": self.diffusion.rgb_encoder.backbone.parameters(), "lr": lr * 0.1, "name": "backbone"},
+            {"params": [p for n, p in self.named_parameters() if "backbone" not in n], "name": "diffusion"},
+        ]
+
 
     def reset(self):
         """Clear observation and action queues. Should be called on `env.reset()`"""
@@ -485,22 +491,41 @@ class DiffusionRgbEncoder(nn.Module):
             self.do_crop = False
 
         # Set up backbone.
-        backbone_model = getattr(torchvision.models, config.vision_backbone)(
-            weights=config.pretrained_backbone_weights
+        
+        # backbone_model = getattr(torchvision.models, config.vision_backbone)(
+        #     weights=config.pretrained_backbone_weights
+        # )
+        
+        DINOV3_REPO = "/Users/trgabl/lerobot_robot_learning/robot_learning_2026/dinov3"
+        WEIGHTS = f"/Users/trgabl/lerobot_robot_learning/robot_learning_2026/dinov3_vits16_pretrain_lvd1689m-08c60483.pth"
+
+        class DINOv3SpatialBackbone(nn.Module):
+            def __init__(self, model):
+                super().__init__()
+                self.model = model
+
+            def forward(self, x):
+                return self.model.get_intermediate_layers(x, n=1, reshape=True, norm=True)[0]
+
+        self.backbone = DINOv3SpatialBackbone(
+            torch.hub.load(repo_or_dir=DINOV3_REPO, model="dinov3_vits16", source="local", weights=WEIGHTS)
         )
+
         # Note: This assumes that the layer4 feature map is children()[-3]
         # TODO(alexander-soare): Use a safer alternative.
-        self.backbone = nn.Sequential(*(list(backbone_model.children())[:-2]))
-        if config.use_group_norm:
-            if config.pretrained_backbone_weights:
-                raise ValueError(
-                    "You can't replace BatchNorm in a pretrained model without ruining the weights!"
-                )
-            self.backbone = _replace_submodules(
-                root_module=self.backbone,
-                predicate=lambda x: isinstance(x, nn.BatchNorm2d),
-                func=lambda x: nn.GroupNorm(num_groups=x.num_features // 16, num_channels=x.num_features),
-            )
+
+        # self.backbone = nn.Sequential(*(list(backbone_model.children())[:-2])) 
+
+        # if config.use_group_norm:
+        #     if config.pretrained_backbone_weights:
+        #         raise ValueError(
+        #             "You can't replace BatchNorm in a pretrained model without ruining the weights!"
+        #         )
+        #     self.backbone = _replace_submodules(
+        #         root_module=self.backbone,
+        #         predicate=lambda x: isinstance(x, nn.BatchNorm2d),
+        #         func=lambda x: nn.GroupNorm(num_groups=x.num_features // 16, num_channels=x.num_features),
+        #     )
 
         # Set up pooling and final layers.
         # Use a dry run to get the feature map shape.
