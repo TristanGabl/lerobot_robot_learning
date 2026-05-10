@@ -1,7 +1,7 @@
 from pathlib import Path
 import torch.nn as nn
 
-_REPO_ROOT = Path(__file__).parents[5]  # lerobot_robot_learning/src/lerobot/policies/diffusion/ -> lerobot_robot_learning/
+_REPO_ROOT = Path(__file__).parents[4]  # lerobot_robot_learning/src/lerobot/policies/diffusion/ -> lerobot_robot_learning/
 
 DINOV3_REPO = str(_REPO_ROOT / "robot_learning_2026" / "dinov3")
 DINOV3_WEIGHTS = str(_REPO_ROOT / "robot_learning_2026" / "dinov3_vits16_pretrain_lvd1689m-08c60483.pth")
