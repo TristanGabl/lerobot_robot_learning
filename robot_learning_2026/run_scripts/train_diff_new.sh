@@ -10,10 +10,10 @@ lerobot-train \
   --wandb.enable=true \
   --wandb.project=derRoboter \
   --batch_size=64 \
-  --steps=100000 \
+  --steps=50000 \
   --save_freq=25000 \
   --eval_freq=10000000 \
-  --policy.resize_shape=[240,320] \
+  --policy.resize_shape=[320,240] \
   --policy.use_amp=true \
   --num_workers=8 \
   --policy.push_to_hub=true \
