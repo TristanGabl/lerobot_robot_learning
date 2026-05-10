@@ -51,6 +51,7 @@ from ..utils import (
 )
 from .configuration_diffusion import DiffusionConfig
 
+from .dinov3_backbone import DINOv3SpatialBackbone, DINOV3_REPO, DINOV3_WEIGHTS
 
 class DiffusionPolicy(PreTrainedPolicy):
     """
@@ -496,19 +497,9 @@ class DiffusionRgbEncoder(nn.Module):
         #     weights=config.pretrained_backbone_weights
         # )
         
-        DINOV3_REPO = "/Users/trgabl/lerobot_robot_learning/robot_learning_2026/dinov3"
-        WEIGHTS = f"/Users/trgabl/lerobot_robot_learning/robot_learning_2026/dinov3_vits16_pretrain_lvd1689m-08c60483.pth"
-
-        class DINOv3SpatialBackbone(nn.Module):
-            def __init__(self, model):
-                super().__init__()
-                self.model = model
-
-            def forward(self, x):
-                return self.model.get_intermediate_layers(x, n=1, reshape=True, norm=True)[0]
 
         self.backbone = DINOv3SpatialBackbone(
-            torch.hub.load(repo_or_dir=DINOV3_REPO, model="dinov3_vits16", source="local", weights=WEIGHTS)
+            torch.hub.load(repo_or_dir=DINOV3_REPO, model="dinov3_vits16", source="local", weights=DINOV3_WEIGHTS)
         )
 
         # Note: This assumes that the layer4 feature map is children()[-3]
