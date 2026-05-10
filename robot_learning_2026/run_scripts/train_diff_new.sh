@@ -20,4 +20,5 @@ lerobot-train \
   --policy.horizon=64 \
   --policy.n_action_steps=32 \
   --policy.drop_n_last_frames=31 \
-  --policy.use_group_norm=false 
+  --policy.use_group_norm=false \
+  --policy.use_separate_rgb_encoder_per_camera=false # leave for get_optim_params() to work
