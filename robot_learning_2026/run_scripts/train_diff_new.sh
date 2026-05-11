@@ -13,7 +13,7 @@ lerobot-train \
   --steps=100000 \
   --save_freq=25000 \
   --eval_freq=10000000 \
-  --policy.resize_shape=[240,320] \
+  --policy.resize_shape=[320,240] \
   --policy.use_amp=true \
   --num_workers=8 \
   --policy.push_to_hub=true \
