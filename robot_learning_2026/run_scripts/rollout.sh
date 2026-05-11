@@ -11,7 +11,7 @@ lerobot-rollout \
   --duration=90 \
   --fps=30 \
   --interpolation_multiplier=1 \
-  --policy.path="DerBoroter/diffusion_fold_2cm_ResNet18" \
+  --policy.path="DerBoroter/diffusion_fold_2cm_dinov3" \
   --policy.noise_scheduler_type="DDIM" \
   --return_to_initial_position=false \
   --policy.resize_shape=[320,240]
