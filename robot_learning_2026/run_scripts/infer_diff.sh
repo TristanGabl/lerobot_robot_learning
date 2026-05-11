@@ -20,7 +20,7 @@ lerobot-record \
   --policy.n_action_steps=15 \
   --interpolation_multiplier=1 \
   --dataset.fps=30 \
-  --policy.resize_shape=[240,320] \
+  --policy.resize_shape=[320,240] \
   --policy.noise_scheduler_type="DDIM" \
   --dataset.push_to_hub=false \
   --policy.num_inference_steps=50
