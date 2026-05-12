@@ -152,6 +152,19 @@ class PolicyServer(services_pb2_grpc.AsyncInferenceServicer):
 
         start = time.perf_counter()
         self.policy = policy_class.from_pretrained(policy_specs.pretrained_name_or_path)
+        if policy_specs.num_inference_steps is not None:
+            from diffusers.schedulers.scheduling_ddim import DDIMScheduler
+            cfg = self.policy.diffusion.noise_scheduler.config
+            self.policy.diffusion.noise_scheduler = DDIMScheduler(
+                num_train_timesteps=cfg.num_train_timesteps,
+                beta_start=cfg.beta_start,
+                beta_end=cfg.beta_end,
+                beta_schedule=cfg.beta_schedule,
+                clip_sample=cfg.clip_sample,
+                set_alpha_to_one=cfg.get("set_alpha_to_one", True),
+                prediction_type=cfg.prediction_type,
+            )
+            self.policy.diffusion.num_inference_steps = policy_specs.num_inference_steps
         self.policy.to(self.device)
 
         # Load preprocessor and postprocessor, overriding device to match requested device
