@@ -3,9 +3,9 @@
 lerobot-train \
   --dataset.repo_id="DerBoroter/single_fold_2cm" \
   --policy.type="diffusion" \
-  --policy.repo_id="DerBoroter/diffusion_fold_2cm" \
-  --output_dir=outputs/train/diffusion_fold_2cm_$(date +%Y%m%d_%H%M%S) \
-  --job_name=diffusion_fold_imgtransf \
+  --policy.repo_id="DerBoroter/diffusion_fold_2cm_imgtransf" \
+  --output_dir=outputs/train/diffusion_fold_2cm_imgtransf$(date +%Y%m%d_%H%M%S) \
+  --job_name=diffusion_fold_2cm_imgtransf \
   --policy.device=cuda \
   --wandb.enable=true \
   --wandb.project=derRoboter \
@@ -17,6 +17,11 @@ lerobot-train \
   --policy.use_amp=true \
   --num_workers=8 \
   --policy.push_to_hub=true \
+  --policy.horizon=64 \
+  --policy.n_action_steps=32 \
+  --policy.drop_n_last_frames=31 \
+  --policy.use_group_norm=false \
+  --policy.use_separate_rgb_encoder_per_camera=false \
   --dataset.image_transforms.enable=true \
   --dataset.image_transforms.max_num_transforms=3 \
   --dataset.image_transforms.random_order=true \
