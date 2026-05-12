@@ -65,6 +65,7 @@ class DiffusionPolicy(PreTrainedPolicy):
     def __init__(
         self,
         config: DiffusionConfig,
+        load_backbone_weights: bool = True,
         **kwargs,
     ):
         """
@@ -82,9 +83,14 @@ class DiffusionPolicy(PreTrainedPolicy):
         # queues are populated during rollout of the policy, they contain the n latest observations and actions
         self._queues = None
 
-        self.diffusion = DiffusionModel(config)
+        self.diffusion = DiffusionModel(config, load_backbone_weights=load_backbone_weights)
 
         self.reset()
+
+    @classmethod
+    def from_pretrained(cls, pretrained_name_or_path, **kwargs):
+        kwargs.setdefault("load_backbone_weights", False)
+        return super().from_pretrained(pretrained_name_or_path, **kwargs)
 
     def get_optim_params(self, lr) -> dict:
         # return self.diffusion.parameters()
@@ -183,7 +189,7 @@ def _make_noise_scheduler(name: str, **kwargs: dict):
 
 
 class DiffusionModel(nn.Module):
-    def __init__(self, config: DiffusionConfig):
+    def __init__(self, config: DiffusionConfig, load_backbone_weights: bool = True):
         super().__init__()
         self.config = config
 
@@ -192,11 +198,11 @@ class DiffusionModel(nn.Module):
         if self.config.image_features:
             num_images = len(self.config.image_features)
             if self.config.use_separate_rgb_encoder_per_camera:
-                encoders = [DiffusionRgbEncoder(config) for _ in range(num_images)]
+                encoders = [DiffusionRgbEncoder(config, load_backbone_weights=load_backbone_weights) for _ in range(num_images)]
                 self.rgb_encoder = nn.ModuleList(encoders)
                 global_cond_dim += encoders[0].feature_dim * num_images
             else:
-                self.rgb_encoder = DiffusionRgbEncoder(config)
+                self.rgb_encoder = DiffusionRgbEncoder(config, load_backbone_weights=load_backbone_weights)
                 global_cond_dim += self.rgb_encoder.feature_dim * num_images
         if self.config.env_state_feature:
             global_cond_dim += self.config.env_state_feature.shape[0]
@@ -471,7 +477,7 @@ class DiffusionRgbEncoder(nn.Module):
     Includes the ability to normalize and crop the image first.
     """
 
-    def __init__(self, config: DiffusionConfig):
+    def __init__(self, config: DiffusionConfig, load_backbone_weights: bool = True):
         super().__init__()
         # Set up optional preprocessing.
         if config.resize_shape is not None:
@@ -492,14 +498,14 @@ class DiffusionRgbEncoder(nn.Module):
             self.do_crop = False
 
         # Set up backbone.
-        
-        # backbone_model = getattr(torchvision.models, config.vision_backbone)(
-        #     weights=config.pretrained_backbone_weights
-        # )
-        
-
         self.backbone = DINOv3SpatialBackbone(
-            torch.hub.load(repo_or_dir=DINOV3_REPO, model="dinov3_vits16", source="local", weights=DINOV3_WEIGHTS)
+            torch.hub.load(
+                repo_or_dir=DINOV3_REPO,
+                model="dinov3_vits16",
+                source="local",
+                pretrained=load_backbone_weights,
+                weights=DINOV3_WEIGHTS,
+            )
         )
 
         # Note: This assumes that the layer4 feature map is children()[-3]
