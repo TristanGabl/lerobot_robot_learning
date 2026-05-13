@@ -10,7 +10,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either exprImage (1363x176)ess or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
@@ -201,25 +201,52 @@ class MultiTaskDiTPolicy(PreTrainedPolicy):
 # -- Observation Encoders --
 
 
-class CLIPVisionEncoder(nn.Module):
-    """CLIP vision encoder using the CLS token for global image representation."""
+# class CLIPVisionEncoder(nn.Module):
+#     """CLIP vision encoder using the CLS token for global image representation."""
 
-    def __init__(self, model_name: str):
+#     def __init__(self, model_name: str):
+#         super().__init__()
+#         self.model_name = model_name
+#         self.model = CLIPVisionModel.from_pretrained(self.model_name)
+#         self.num_non_spatial_tokens = 1
+#         self.embed_dim = self.model.config.hidden_size
+
+#     def forward(self, x: Tensor) -> Tensor:
+#         """Encode RGB image to CLS token."""
+#         outputs = self.model(pixel_values=x, output_hidden_states=False)
+#         cls_token = outputs.last_hidden_state[:, 0]
+#         b, embed_dim = cls_token.shape
+#         return cls_token.reshape(b, embed_dim, 1, 1)
+
+#     def get_output_shape(self) -> tuple:
+#         return (self.embed_dim, 1, 1)
+
+
+from pathlib import Path
+import torch.nn as nn
+
+_REPO_ROOT = Path(__file__).parents[4]  # lerobot_robot_learning/src/lerobot/policies/diffusion/ -> lerobot_robot_learning/
+
+DINOV3_REPO = str(_REPO_ROOT / "robot_learning_2026" / "dinov3")
+DINOV3_WEIGHTS = str(_REPO_ROOT / "robot_learning_2026" / "dinov3_vits16_pretrain_lvd1689m-08c60483.pth")
+
+class DINOv3SpatialBackbone(nn.Module):
+    def __init__(self, model):
         super().__init__()
-        self.model_name = model_name
-        self.model = CLIPVisionModel.from_pretrained(self.model_name)
-        self.num_non_spatial_tokens = 1
-        self.embed_dim = self.model.config.hidden_size
+        self.model = model
 
-    def forward(self, x: Tensor) -> Tensor:
-        """Encode RGB image to CLS token."""
-        outputs = self.model(pixel_values=x, output_hidden_states=False)
-        cls_token = outputs.last_hidden_state[:, 0]
-        b, embed_dim = cls_token.shape
-        return cls_token.reshape(b, embed_dim, 1, 1)
+    def forward(self, x):
+        # TODO Tristan: add spatial softmax or similar
+        return self.model.get_intermediate_layers(x, n=1, reshape=True, norm=True)[0]
+    
+def get_output_shape(self):
+    # TODO Tristan: handle with new input shape
+    dummy = torch.zeros(1, 3, 224, 224) 
+    with torch.no_grad():
+        out = self.forward(dummy)
+    return tuple(out.shape[1:])  # (C, H, W)
 
-    def get_output_shape(self) -> tuple:
-        return (self.embed_dim, 1, 1)
+
 
 
 class CLIPTextEncoder(nn.Module):
