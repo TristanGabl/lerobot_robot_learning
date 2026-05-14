@@ -485,7 +485,7 @@ class DINOv3SpatialBackbone(nn.Module):
 
         if not DINOV3_REPO.is_dir() or not any(DINOV3_REPO.iterdir()):
             raise FileNotFoundError(f"DINOv3 repo not found or empty: {DINOV3_REPO}")
-        if not DINOV3_WEIGHTS.is_file():
+        if not DINOV3_WEIGHTS.is_file() and load_backbone_weights:
             raise FileNotFoundError(f"DINOv3 weights not found: {DINOV3_WEIGHTS}")
 
         if str(DINOV3_REPO) not in sys.path:
