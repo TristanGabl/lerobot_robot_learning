@@ -3,7 +3,7 @@
 lerobot-train \
   --dataset.repo_id="DerBoroter/full_fold_tristan" \
   --policy.type="diffusion" \
-  --policy.repo_id="DerBoroter/test_resnet" \
+  --policy.repo_id="DerBoroter/test_dino" \
   --output_dir=outputs/train/diffusion_fold_2cm_$(date +%Y%m%d_%H%M%S) \
   --job_name=diffusion_fold \
   --policy.device=cuda \

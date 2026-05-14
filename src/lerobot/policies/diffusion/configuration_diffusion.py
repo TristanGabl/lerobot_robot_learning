@@ -117,7 +117,7 @@ class DiffusionConfig(PreTrainedConfig):
 
     # Architecture / modeling.
     # Vision backbone.
-    vision_backbone: str = "resnet18"
+    vision_backbone: str | None = None
     resize_shape: tuple[int, int] | None = None
     crop_ratio: float = 1.0
     crop_shape: tuple[int, int] | None = None
@@ -163,6 +163,11 @@ class DiffusionConfig(PreTrainedConfig):
 
     def __post_init__(self):
         super().__post_init__()
+
+        if self.vision_backbone is None:
+            self.vision_backbone = (
+                "dinov3_vits16" if self.pretrained_backbone_weights == "dinov3_vits16" else "resnet18"
+            )
 
         """Input validation (not exhaustive)."""
         if not self.vision_backbone.startswith("resnet") and not self.vision_backbone.startswith("dino"):
