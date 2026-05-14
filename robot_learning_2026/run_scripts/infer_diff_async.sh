@@ -7,10 +7,10 @@ if [[ "$(uname)" == "Darwin" ]]; then
         --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 480, height: 640, fps: 30, rotation: -90}}" \
         --task="folding towel" \
         --policy_type=diffusion \
-        --pretrained_name_or_path="DerBoroter/diffusion_fold_2cm_150ep" \
+        --pretrained_name_or_path="DerBoroter/full_fold_tristan_with_recovery" \
         --policy_device=cuda \
         --actions_per_chunk=100 \
         --aggregate_fn_name=weighted_average \
-        --debug_visualize_queue_size=True \
+        --debug_visualize_queue_size=False \
         --num_inference_steps=15
 fi
