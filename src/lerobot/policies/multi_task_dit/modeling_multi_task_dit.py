@@ -30,6 +30,7 @@ from collections import deque
 from typing import TYPE_CHECKING
 
 from pathlib import Path
+import sys
 
 import einops
 import torch
@@ -66,7 +67,8 @@ from lerobot.utils.constants import (
 )
 
 from ..pretrained import PreTrainedPolicy
-from ..utils import populate_queues
+from ..utils import populate_queues, get_output_shape
+
 
 # -- Policy --
 
@@ -75,11 +77,13 @@ class MultiTaskDiTPolicy(PreTrainedPolicy):
     config_class = MultiTaskDiTConfig
     name = "multi_task_dit"
 
-    def __init__(self, config: MultiTaskDiTConfig, **kwargs):
+    def __init__(self, config: MultiTaskDiTConfig, load_backbone_weights: bool | None = None, **kwargs):
         require_package("transformers", extra="multi_task_dit")
         require_package("diffusers", extra="multi_task_dit")
         super().__init__(config)
         config.validate_features()
+        if load_backbone_weights is not None:
+            config.load_backbone_weights = load_backbone_weights
         self.config = config
 
         self._queues = None
@@ -109,6 +113,11 @@ class MultiTaskDiTPolicy(PreTrainedPolicy):
             raise ValueError(f"Unsupported objective: {config.objective}")
 
         self.reset()
+
+    @classmethod
+    def from_pretrained(cls, pretrained_name_or_path, **kwargs):
+        kwargs.setdefault("load_backbone_weights", False)
+        return super().from_pretrained(pretrained_name_or_path, **kwargs)
 
     def get_optim_params(self) -> list:
         """Returns parameter groups with different learning rates for vision vs non-vision parameters"""
@@ -226,8 +235,8 @@ class MultiTaskDiTPolicy(PreTrainedPolicy):
 #         return (self.embed_dim, 1, 1)
 
 
-class DINOv3VisionEncoder(nn.Module):
-    def __init__(self, input_shape: tuple[int, int], num_keypoints: int = 64, load_pretrained: bool = True):
+class DINOv3VisionEncoder(nn.Module): # TODO Tristan: change num_keypoints
+    def __init__(self, model_name: str, input_shape: tuple[int, int], num_keypoints: int = 32, load_pretrained: bool = True):
         super().__init__()
 
         _REPO_ROOT = Path(__file__).parents[4]
@@ -239,6 +248,9 @@ class DINOv3VisionEncoder(nn.Module):
             raise FileNotFoundError(f"DINOv3 repo not found or empty at {DINOV3_REPO}")
         if load_pretrained and not Path(DINOV3_WEIGHTS).is_file():
             raise FileNotFoundError(f"DINOv3 weights not found at {DINOV3_WEIGHTS}")
+
+        if DINOV3_REPO not in sys.path:
+            sys.path.insert(0, DINOV3_REPO)
 
         self.backbone = torch.hub.load(
             repo_or_dir=DINOV3_REPO,
@@ -308,13 +320,22 @@ class ObservationEncoder(nn.Module):
             self.num_cameras = len(config.image_features)
             self.camera_names = list(config.image_features.keys())
 
-            if config.use_separate_rgb_encoder_per_camera:
+            images_shape = next(iter(config.image_features.values())).shape
+            if config.image_crop_shape is not None:
+                input_shape_h_w = config.image_crop_shape
+            elif config.image_resize_shape is not None:
+                input_shape_h_w = config.image_resize_shape
+            else:
+                input_shape_h_w = images_shape[1:]
+            
+
+            if config.use_separate_rgb_encoder_per_camera: 
                 self.vision_encoders = nn.ModuleList(
-                    [DINOv3VisionEncoder(model_name=config.vision_encoder_name) for _ in self.camera_names]
+                    [DINOv3VisionEncoder(model_name=config.vision_encoder_name, input_shape=input_shape_h_w, load_pretrained=config.load_backbone_weights) for _ in self.camera_names]
                 )
                 self.vision_encoder = None
             else:
-                self.vision_encoder = DINOv3VisionEncoder(model_name=config.vision_encoder_name)
+                self.vision_encoder = DINOv3VisionEncoder(model_name=config.vision_encoder_name, input_shape=input_shape_h_w, load_pretrained=config.load_backbone_weights)
                 self.vision_encoders = None
         else:
             self.vision_encoder = None
@@ -327,8 +348,10 @@ class ObservationEncoder(nn.Module):
         else:
             self.robot_state_dim = 0
 
-        self.text_dim = config.hidden_dim
-        self.text_encoder = CLIPTextEncoder(model_name=config.text_encoder_name, projection_dim=self.text_dim)
+        # self.text_dim = config.hidden_dim
+        # self.text_encoder = CLIPTextEncoder(model_name=config.text_encoder_name, projection_dim=self.text_dim)
+        self.text_encoder = None
+        self.text_dim = 0
 
         self._setup_vector_output()
 

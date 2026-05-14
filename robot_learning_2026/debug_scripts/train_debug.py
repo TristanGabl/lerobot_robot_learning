@@ -22,9 +22,9 @@ sys.argv = [
     "--log_freq=1",
     "--save_checkpoint=false",
     "--policy.push_to_hub=false",
+    "--policy.image_resize_shape=[320,240]", 
+    "--policy.image_crop_shape=null"
 ]
-
-# "--policy.image_resize_shape=[320,240]",
 
 from lerobot.scripts.lerobot_train import main
 
