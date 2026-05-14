@@ -69,7 +69,7 @@ class MultiTaskDiTConfig(PreTrainedConfig):
     rope_base: float = 10000.0  # RoPE base frequency
 
     # Vision Encoder (CLIP) TODO: Tristan: change to dino
-    vision_encoder_name: str = "openai/clip-vit-base-patch16"  # HuggingFace CLIP model
+    vision_encoder_name: str = "dinov3_vits16"  # HuggingFace CLIP model
     use_separate_rgb_encoder_per_camera: bool = False  # Separate encoder per camera view
     vision_encoder_lr_multiplier: float = 0.1  # LR multiplier for vision encoder
     image_resize_shape: tuple[int, int] | None = None  # Resize images before crop
@@ -77,7 +77,7 @@ class MultiTaskDiTConfig(PreTrainedConfig):
     image_crop_is_random: bool = True  # Random crop during training, center at inference
     load_backbone_weights: bool = True # load pretrained checkpoint
 
-    # Text Encoder (CLIP)
+    # Text Encoder (CLIP) # gets ignored
     text_encoder_name: str = "openai/clip-vit-base-patch16"  # HuggingFace CLIP model
     tokenizer_max_length: int = 77  # Max length for tokenized text (CLIP default is 77)
     tokenizer_padding: str = "max_length"  # Padding strategy: "max_length" or "longest"
@@ -132,9 +132,9 @@ class MultiTaskDiTConfig(PreTrainedConfig):
             raise ValueError("dropout must be between 0.0 and 1.0")
 
         # Vision encoder validation TODO: Tristan: change to dino
-        if "clip" not in self.vision_encoder_name.lower():
+        if "dinov3" not in self.vision_encoder_name.lower():
             raise ValueError(
-                f"vision_encoder_name must be a CLIP model (contain 'clip'), got '{self.vision_encoder_name}'"
+                f"vision_encoder_name must be a dinov3 model (contain 'dinov3'), got '{self.vision_encoder_name}'"
             )
         if (
             self.image_resize_shape
