@@ -29,6 +29,8 @@ import math
 from collections import deque
 from typing import TYPE_CHECKING
 
+from pathlib import Path
+
 import einops
 import torch
 import torch.nn as nn
@@ -39,6 +41,8 @@ from torch import Tensor
 from lerobot.utils.import_utils import _diffusers_available, _transformers_available, require_package
 
 from .configuration_multi_task_dit import MultiTaskDiTConfig
+
+from ..diffusion.modeling_diffusion import SpatialSoftmax
 
 # Conditional import for type checking and lazy loading
 if TYPE_CHECKING or _transformers_available:
@@ -222,32 +226,42 @@ class MultiTaskDiTPolicy(PreTrainedPolicy):
 #         return (self.embed_dim, 1, 1)
 
 
-from pathlib import Path
-import torch.nn as nn
-
-_REPO_ROOT = Path(__file__).parents[4]  # lerobot_robot_learning/src/lerobot/policies/diffusion/ -> lerobot_robot_learning/
-
-DINOV3_REPO = str(_REPO_ROOT / "robot_learning_2026" / "dinov3")
-DINOV3_WEIGHTS = str(_REPO_ROOT / "robot_learning_2026" / "dinov3_vits16_pretrain_lvd1689m-08c60483.pth")
-
-class DINOv3SpatialBackbone(nn.Module):
-    def __init__(self, model):
+class DINOv3VisionEncoder(nn.Module):
+    def __init__(self, input_shape: tuple[int, int], num_keypoints: int = 64, load_pretrained: bool = True):
         super().__init__()
-        self.model = model
 
-    def forward(self, x):
-        # TODO Tristan: add spatial softmax or similar
-        return self.model.get_intermediate_layers(x, n=1, reshape=True, norm=True)[0]
-    
-def get_output_shape(self):
-    # TODO Tristan: handle with new input shape
-    dummy = torch.zeros(1, 3, 224, 224) 
-    with torch.no_grad():
-        out = self.forward(dummy)
-    return tuple(out.shape[1:])  # (C, H, W)
+        _REPO_ROOT = Path(__file__).parents[4]
+        DINOV3_REPO = str(_REPO_ROOT / "robot_learning_2026" / "dinov3")
+        DINOV3_WEIGHTS = str(_REPO_ROOT / "robot_learning_2026" / "dinov3_vits16_pretrain_lvd1689m-08c60483.pth")
 
+        repo_path = Path(DINOV3_REPO)
+        if not repo_path.is_dir() or not any(repo_path.iterdir()):
+            raise FileNotFoundError(f"DINOv3 repo not found or empty at {DINOV3_REPO}")
+        if load_pretrained and not Path(DINOV3_WEIGHTS).is_file():
+            raise FileNotFoundError(f"DINOv3 weights not found at {DINOV3_WEIGHTS}")
 
+        self.backbone = torch.hub.load(
+            repo_or_dir=DINOV3_REPO,
+            model="dinov3_vits16",
+            source="local",
+            pretrained=load_pretrained,
+            weights=DINOV3_WEIGHTS,
+        )
 
+        with torch.no_grad():
+            dummy = torch.zeros(1, 3, *input_shape)
+            feat = self.backbone.get_intermediate_layers(dummy, n=1, reshape=True, norm=True)[0]
+            feature_map_shape = tuple(feat.shape[1:])  # (C, H, W)
+
+        self.pool = SpatialSoftmax(feature_map_shape, num_kp=num_keypoints)
+        self.feature_dim = num_keypoints * 2
+
+    def forward(self, x: Tensor) -> Tensor:
+        feat = self.backbone.get_intermediate_layers(x, n=1, reshape=True, norm=True)[0]
+        return self.pool(feat).flatten(start_dim=1).unsqueeze(-1).unsqueeze(-1)  # (B, feature_dim, 1, 1)
+
+    def get_output_shape(self) -> tuple:
+        return (self.feature_dim, 1, 1)
 
 class CLIPTextEncoder(nn.Module):
     """CLIP text encoder with frozen weights and a learnable projection layer.
@@ -296,11 +310,11 @@ class ObservationEncoder(nn.Module):
 
             if config.use_separate_rgb_encoder_per_camera:
                 self.vision_encoders = nn.ModuleList(
-                    [CLIPVisionEncoder(model_name=config.vision_encoder_name) for _ in self.camera_names]
+                    [DINOv3VisionEncoder(model_name=config.vision_encoder_name) for _ in self.camera_names]
                 )
                 self.vision_encoder = None
             else:
-                self.vision_encoder = CLIPVisionEncoder(model_name=config.vision_encoder_name)
+                self.vision_encoder = DINOv3VisionEncoder(model_name=config.vision_encoder_name)
                 self.vision_encoders = None
         else:
             self.vision_encoder = None
