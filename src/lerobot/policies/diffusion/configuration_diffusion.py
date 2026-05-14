@@ -117,7 +117,7 @@ class DiffusionConfig(PreTrainedConfig):
 
     # Architecture / modeling.
     # Vision backbone.
-    vision_backbone: str = "resnet18"
+    vision_backbone: str | None = None
     resize_shape: tuple[int, int] | None = None
     crop_ratio: float = 1.0
     crop_shape: tuple[int, int] | None = None
@@ -126,6 +126,7 @@ class DiffusionConfig(PreTrainedConfig):
     use_group_norm: bool = False
     spatial_softmax_num_keypoints: int = 32
     use_separate_rgb_encoder_per_camera: bool = True
+    backbone_lr_factor: float = 1.0
     # Unet.
     down_dims: tuple[int, ...] = (512, 1024, 2048)
     kernel_size: int = 5
@@ -163,8 +164,13 @@ class DiffusionConfig(PreTrainedConfig):
     def __post_init__(self):
         super().__post_init__()
 
+        if self.vision_backbone is None:
+            self.vision_backbone = (
+                "dinov3_vits16" if self.pretrained_backbone_weights == "dinov3_vits16" else "resnet18"
+            )
+
         """Input validation (not exhaustive)."""
-        if not self.vision_backbone.startswith("resnet"):
+        if not self.vision_backbone.startswith("resnet") and not self.vision_backbone.startswith("dino"):
             raise ValueError(
                 f"`vision_backbone` must be one of the ResNet variants. Got {self.vision_backbone}."
             )

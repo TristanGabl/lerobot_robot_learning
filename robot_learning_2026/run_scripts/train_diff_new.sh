@@ -1,9 +1,9 @@
 # Train a diffusion policy on the collected dataset
 
 lerobot-train \
-  --dataset.repo_id="DerBoroter/single_fold_2cm" \
+  --dataset.repo_id="DerBoroter/full_fold_tristan" \
   --policy.type="diffusion" \
-  --policy.repo_id="DerBoroter/diffusion_fold_2cm" \
+  --policy.repo_id="DerBoroter/test_dino" \
   --output_dir=outputs/train/diffusion_fold_2cm_$(date +%Y%m%d_%H%M%S) \
   --job_name=diffusion_fold \
   --policy.device=cuda \
@@ -21,4 +21,8 @@ lerobot-train \
   --policy.n_action_steps=32 \
   --policy.drop_n_last_frames=31 \
   --policy.pretrained_backbone_weights="ResNet18_Weights.IMAGENET1K_V1" \
-  --policy.use_group_norm=false 
+  --policy.backbone_lr_factor=0.1 \
+  --policy.use_group_norm=false
+
+# ResNet18_Weights.IMAGENET1K_V1 for resnet18
+# dinov3_vits16 for dinov3 backbone
