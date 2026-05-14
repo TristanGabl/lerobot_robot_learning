@@ -24,6 +24,8 @@ import math
 from collections import deque
 from collections.abc import Callable
 from typing import TYPE_CHECKING
+from pathlib import Path
+import sys
 
 import einops
 import numpy as np
@@ -50,8 +52,6 @@ from ..utils import (
     populate_queues,
 )
 from .configuration_diffusion import DiffusionConfig
-
-from .dinov3_backbone import DINOv3SpatialBackbone, DINOV3_REPO, DINOV3_WEIGHTS
 
 class DiffusionPolicy(PreTrainedPolicy):
     """
@@ -93,11 +93,15 @@ class DiffusionPolicy(PreTrainedPolicy):
         return super().from_pretrained(pretrained_name_or_path, **kwargs)
 
     def get_optim_params(self, lr) -> dict:
-        # return self.diffusion.parameters()
-        
+        if self.config.use_separate_rgb_encoder_per_camera:
+            backbone_params = [p for enc in self.diffusion.rgb_encoder for p in enc.backbone.parameters()]
+        else:
+            backbone_params = list(self.diffusion.rgb_encoder.backbone.parameters())
+
+        backbone_ids = {id(p) for p in backbone_params}
         return [
-            {"params": self.diffusion.rgb_encoder.backbone.parameters(), "lr": lr * 0.1, "name": "backbone"},
-            {"params": [p for n, p in self.named_parameters() if "backbone" not in n], "name": "diffusion"},
+            {"params": backbone_params, "lr": lr * self.config.backbone_lr_factor, "name": "backbone"},
+            {"params": [p for p in self.parameters() if id(p) not in backbone_ids], "name": "diffusion"},
         ]
 
 
@@ -470,6 +474,33 @@ class SpatialSoftmax(nn.Module):
 
         return feature_keypoints
 
+class DINOv3SpatialBackbone(nn.Module):
+    def __init__(self, load_backbone_weights: bool):
+        super().__init__()
+
+        _REPO_ROOT = Path(__file__).parents[4]  # lerobot_robot_learning/src/lerobot/policies/diffusion/ -> lerobot_robot_learning/
+
+        DINOV3_REPO = _REPO_ROOT / "robot_learning_2026" / "dinov3"
+        DINOV3_WEIGHTS = _REPO_ROOT / "robot_learning_2026" / "dinov3_vits16_pretrain_lvd1689m-08c60483.pth"
+
+        if not DINOV3_REPO.is_dir() or not any(DINOV3_REPO.iterdir()):
+            raise FileNotFoundError(f"DINOv3 repo not found or empty: {DINOV3_REPO}")
+        if not DINOV3_WEIGHTS.is_file():
+            raise FileNotFoundError(f"DINOv3 weights not found: {DINOV3_WEIGHTS}")
+
+        if str(DINOV3_REPO) not in sys.path:
+            sys.path.insert(0, str(DINOV3_REPO))
+
+        self.model = torch.hub.load(
+            repo_or_dir=str(DINOV3_REPO),
+            model="dinov3_vits16",
+            source="local",
+            pretrained=load_backbone_weights,
+            weights=str(DINOV3_WEIGHTS),
+        )   
+
+    def forward(self, x):
+        return self.model.get_intermediate_layers(x, n=1, reshape=True, norm=True)[0]
 
 class DiffusionRgbEncoder(nn.Module):
     """Encodes an RGB image into a 1D feature vector.
@@ -498,31 +529,25 @@ class DiffusionRgbEncoder(nn.Module):
             self.do_crop = False
 
         # Set up backbone.
-        self.backbone = DINOv3SpatialBackbone(
-            torch.hub.load(
-                repo_or_dir=DINOV3_REPO,
-                model="dinov3_vits16",
-                source="local",
-                pretrained=load_backbone_weights,
-                weights=DINOV3_WEIGHTS,
+        self.backbone = None
+        if config.pretrained_backbone_weights == "dinov3_vits16":
+            self.backbone = DINOv3SpatialBackbone(load_backbone_weights)
+
+        else:
+            backbone_model = getattr(torchvision.models, config.vision_backbone)(
+                weights=config.pretrained_backbone_weights
             )
-        )
-
-        # Note: This assumes that the layer4 feature map is children()[-3]
-        # TODO(alexander-soare): Use a safer alternative.
-
-        # self.backbone = nn.Sequential(*(list(backbone_model.children())[:-2])) 
-
-        # if config.use_group_norm:
-        #     if config.pretrained_backbone_weights:
-        #         raise ValueError(
-        #             "You can't replace BatchNorm in a pretrained model without ruining the weights!"
-        #         )
-        #     self.backbone = _replace_submodules(
-        #         root_module=self.backbone,
-        #         predicate=lambda x: isinstance(x, nn.BatchNorm2d),
-        #         func=lambda x: nn.GroupNorm(num_groups=x.num_features // 16, num_channels=x.num_features),
-        #     )
+            self.backbone = nn.Sequential(*(list(backbone_model.children())[:-2])) 
+            if config.use_group_norm:
+                if config.pretrained_backbone_weights:
+                    raise ValueError(
+                        "You can't replace BatchNorm in a pretrained model without ruining the weights!"
+                    )
+                self.backbone = _replace_submodules(
+                    root_module=self.backbone,
+                    predicate=lambda x: isinstance(x, nn.BatchNorm2d),
+                    func=lambda x: nn.GroupNorm(num_groups=x.num_features // 16, num_channels=x.num_features),
+                ) 
 
         # Set up pooling and final layers.
         # Use a dry run to get the feature map shape.
@@ -536,6 +561,15 @@ class DiffusionRgbEncoder(nn.Module):
             dummy_shape_h_w = config.resize_shape
         else:
             dummy_shape_h_w = images_shape[1:]
+
+        if config.pretrained_backbone_weights == "dinov3_vits16" and (
+            dummy_shape_h_w[0] % 16 != 0 or dummy_shape_h_w[1] % 16 != 0
+        ):
+            raise ValueError(
+                f"DINOv3 (ViT-S/16) requires input height and width to be multiples of 16, "
+                f"but got {dummy_shape_h_w}. Adjust crop_shape or resize_shape accordingly."
+            )
+        
         dummy_shape = (1, images_shape[0], *dummy_shape_h_w)
         feature_map_shape = get_output_shape(self.backbone, dummy_shape)[1:]
 

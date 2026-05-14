@@ -24,7 +24,7 @@ sys.argv = [
     "--save_checkpoint=false",
     "--policy.push_to_hub=false",
     "--policy.pretrained_backbone_weights=ResNet18_Weights.IMAGENET1K_V1",
-    "--policy.vision_backbone=dinov3_vits16"
+    "--policy.backbone_lr_factor=0.1"
 ]
 
 from lerobot.scripts.lerobot_train import main

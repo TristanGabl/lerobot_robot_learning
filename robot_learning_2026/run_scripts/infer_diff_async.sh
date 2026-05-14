@@ -7,12 +7,9 @@ if [[ "$(uname)" == "Darwin" ]]; then
         --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 480, height: 640, fps: 30, rotation: -90}}" \
         --task="folding towel" \
         --policy_type=diffusion \
-        --pretrained_name_or_path="DerBoroter/diffusion_fold_2cm_crop" \
+        --pretrained_name_or_path="DerBoroter/test_resnet" \
         --policy_device=cuda \
         --actions_per_chunk=50 \
         --aggregate_fn_name=weighted_average \
         --debug_visualize_queue_size=True \
-        --policy.n_action_steps=15 \
-        --interpolation_multiplier=1 \
-        --policy.num_inference_steps=50 \
-        --policy.noise_scheduler_type="DDIM"
+        --pretrained_backbone_weights

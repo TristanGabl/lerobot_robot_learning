@@ -1,18 +1,18 @@
 # Train a diffusion policy on the collected dataset
 
 lerobot-train \
-  --dataset.repo_id="DerBoroter/single_fold_2cm" \
+  --dataset.repo_id="DerBoroter/full_fold_tristan" \
   --policy.type="diffusion" \
-  --policy.repo_id="DerBoroter/diffusion_fold_2cm_dinov3" \
+  --policy.repo_id="DerBoroter/test_resnet" \
   --output_dir=outputs/train/diffusion_fold_2cm_$(date +%Y%m%d_%H%M%S) \
   --job_name=diffusion_fold \
   --policy.device=cuda \
   --wandb.enable=true \
   --wandb.project=derRoboter \
-  --batch_size=64 \
-  --steps=50000 \
-  --save_freq=25000 \
-  --eval_freq=10000000 \
+  --batch_size=1 \
+  --steps=10 \
+  --save_freq=10 \
+  --eval_freq=10000 \
   --policy.resize_shape=[320,240] \
   --policy.use_amp=true \
   --num_workers=8 \
@@ -20,5 +20,9 @@ lerobot-train \
   --policy.horizon=64 \
   --policy.n_action_steps=32 \
   --policy.drop_n_last_frames=31 \
-  --policy.use_group_norm=false \
-  --policy.use_separate_rgb_encoder_per_camera=false # leave for get_optim_params() to work
+  --policy.pretrained_backbone_weights="ResNet18_Weights.IMAGENET1K_V1" \
+  --policy.backbone_lr_factor=0.1 \
+  --policy.use_group_norm=false
+
+# ResNet18_Weights.IMAGENET1K_V1 for resnet18
+# dinov3_vits16 for dinov3 backbone
