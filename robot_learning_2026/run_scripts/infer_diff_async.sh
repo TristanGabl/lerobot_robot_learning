@@ -13,4 +13,5 @@ if [[ "$(uname)" == "Darwin" ]]; then
         --aggregate_fn_name=weighted_average \
         --debug_visualize_queue_size=False \
         --num_inference_steps=15
+        
 fi

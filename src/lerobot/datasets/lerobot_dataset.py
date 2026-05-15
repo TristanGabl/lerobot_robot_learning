@@ -17,6 +17,7 @@ import contextlib
 import logging
 from collections.abc import Callable
 from pathlib import Path
+from tqdm import tqdm
 
 import datasets
 import torch
@@ -62,6 +63,7 @@ class LeRobotDataset(torch.utils.data.Dataset):
         streaming_encoding: bool = False,
         encoder_queue_maxsize: int = 30,
         encoder_threads: int | None = None,
+        transforms_refresh: int = 1,
     ):
         """
         2 modes are available for instantiating this class, depending on 2 different use cases:
@@ -194,6 +196,12 @@ class LeRobotDataset(torch.utils.data.Dataset):
             to append to existing ones.
         """
         super().__init__()
+
+        self.steps_counter = 0
+        self.transforms_refresh = transforms_refresh
+        self._transformed_cache: dict | None = None
+
+
         self.repo_id = repo_id
         self._requested_root = Path(root) if root else None
         self.reader = None
@@ -455,6 +463,8 @@ class LeRobotDataset(torch.utils.data.Dataset):
         if reader.hf_dataset is None:
             # One-shot load after finalize()
             reader.load_and_activate()
+        if self._transformed_cache is not None:
+            return self._transformed_cache[idx]
         return reader.get_item(idx)
 
     def select_columns(self, column_names: str | list[str]):
@@ -823,3 +833,26 @@ class LeRobotDataset(torch.utils.data.Dataset):
         obj._is_finalized = False
 
         return obj
+    
+    def transform_full_dataset(self) -> None:
+        """Pre-apply image transforms to every frame and store full items in memory.
+
+        After calling this, __getitem__ returns directly from the in-memory cache
+        (no video decoding per call). Call again every `transforms_refresh` steps
+        to resample new random augmentations.
+        """
+        if self.image_transforms is None:
+            return
+
+        reader = self._ensure_reader()
+        cam_keys = self.meta.camera_keys
+
+        cache: dict[int, dict] = {}
+        for idx in tqdm(range(len(self)), desc="Transforming dataset", leave=False):
+            item = reader.get_item(idx)
+            for cam in cam_keys:
+                if cam in item:
+                    item[cam] = self.image_transforms(item[cam])
+            cache[idx] = item
+
+        self._transformed_cache = cache

@@ -24,11 +24,11 @@ from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
 # ---------------------------- CONFIGURATION ----------------------------
 # HuggingFace repo id
-repo_id = "DerBoroter/50_fold"
+repo_id = "DerBoroter/full_fold_tristan"
 
 # Output directory for visualizations
 output_dir = Path(
-    "/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/out_viz_transform"
+    "robot_learning_2026/out_viz_transform"
 )
 #output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -38,7 +38,7 @@ n_aug_per_sample = 6
 
 # Boundaries for each property
 boundaries_config = {
-    "brightness": {"low": 0.7, "high": 1.3},
+    "brightness": {"low": 0.5, "high": 1.5},
     "contrast": {"low": 0.8, "high": 1.2},
     "saturation": {"low": 0.8, "high": 1.2},
     "hue": {"low": -0.03, "high": 0.03},

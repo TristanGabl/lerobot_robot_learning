@@ -39,6 +39,7 @@ class DatasetConfig:
     # This reduces memory and speeds up DataLoader IPC. The training pipeline handles the conversion.
     return_uint8: bool = False
     streaming: bool = False
+    transforms_refresh: int = 1
 
     def __post_init__(self) -> None:
         if self.episodes is not None:
