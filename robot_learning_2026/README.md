@@ -160,3 +160,18 @@ python -m lerobot.async_inference.robot_client \
 Develop custo policy from scratch (for future reference, now we can just modify the basic diffusion directly)
 
 https://huggingface.co/docs/lerobot/en/bring_your_own_policies 
+
+
+# Datasets & Models
+
+Updated best datasets and models to use
+
+
+## Datasets
+
+
+- **full_fold_tristan**: 150 full folds with the same configuration for base task
+- **full_fold_general_tristan**: 150 folds with variety of offsets and rotations for bonus task
+- **recovery_tristan**: 70 corrections of the first grab, the second grab and a adjustment of the 2nd fold ending (didn’t show any benefit for now)
+
+## Models

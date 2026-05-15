@@ -125,6 +125,7 @@ class DAggerEvents:
         # Session-level flags
         self.stop_recording = Event()
         self.upload_requested = Event()
+        self.home_requested = Event()
 
     # -- Thread-safe phase access ------------------------------------------
 
@@ -169,6 +170,7 @@ class DAggerEvents:
             self._phase = DAggerPhase.AUTONOMOUS
             self._pending_transition = None
         self.upload_requested.clear()
+        self.home_requested.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -249,6 +251,10 @@ def _init_dagger_keyboard(events: DAggerEvents, cfg: DAggerKeyboardConfig):
         "space": keyboard.Key.space,
         "tab": keyboard.Key.tab,
         "enter": keyboard.Key.enter,
+        "right": keyboard.Key.right,
+        "left": keyboard.Key.left,
+        "up": keyboard.Key.up,
+        "down": keyboard.Key.down,
     }
 
     def _resolve_key(key) -> str | None:
@@ -281,16 +287,19 @@ def _init_dagger_keyboard(events: DAggerEvents, cfg: DAggerKeyboardConfig):
                 events.request_transition(key_to_event[resolved])
             if resolved == cfg.upload:
                 events.upload_requested.set()
+            if resolved == cfg.home:
+                events.home_requested.set()
         except Exception as e:
             logger.debug("Key error: %s", e)
 
     listener = keyboard.Listener(on_press=on_press)
     listener.start()
     logger.info(
-        "DAgger keyboard listener started (pause_resume='%s', correction='%s', upload='%s', ESC=stop)",
+        "DAgger keyboard listener started (pause_resume='%s', correction='%s', upload='%s', home='%s', ESC=stop)",
         cfg.pause_resume,
         cfg.correction,
         cfg.upload,
+        cfg.home,
     )
     return listener
 
@@ -475,6 +484,17 @@ class DAggerStrategy(RolloutStrategy):
                         if new_phase == DAggerPhase.AUTONOMOUS:
                             last_action = None
 
+                    # On-demand homing (PAUSED only — no frames are recorded in PAUSED)
+                    if events.home_requested.is_set():
+                        events.home_requested.clear()
+                        if events.phase == DAggerPhase.PAUSED:
+                            last_action = self._home_robot(ctx, last_action)
+                        else:
+                            logger.warning(
+                                "Home requested but phase=%s — only allowed in PAUSED",
+                                events.phase.value,
+                            )
+
                     phase = events.phase
                     obs = robot.get_observation()
 
@@ -655,6 +675,17 @@ class DAggerStrategy(RolloutStrategy):
                         logger.info("Upload requested by user")
                         self._background_push(dataset, cfg)
 
+                    # On-demand homing (PAUSED only — no frames are recorded in PAUSED)
+                    if events.home_requested.is_set():
+                        events.home_requested.clear()
+                        if events.phase == DAggerPhase.PAUSED:
+                            last_action = self._home_robot(ctx, last_action)
+                        else:
+                            logger.warning(
+                                "Home requested but phase=%s — only allowed in PAUSED",
+                                events.phase.value,
+                            )
+
                     phase = events.phase
                     obs = robot.get_observation()
 
@@ -792,6 +823,37 @@ class DAggerStrategy(RolloutStrategy):
             # release teleop before resuming the policy
             if _teleop_supports_feedback(teleop):
                 teleop.disable_torque()
+
+    def _home_robot(
+        self,
+        ctx: RolloutContext,
+        last_action: dict | None,
+    ) -> dict | None:
+        """Smoothly move follower (and leader if actuated) to the captured initial position.
+
+        Safe to call only from PAUSED — no frames are recorded during the move.
+        Returns the new ``last_action`` so the caller can keep the arms held there.
+        """
+        initial = ctx.hardware.initial_position
+        if initial is None:
+            logger.warning("Home requested but no initial_position captured — ignoring")
+            return last_action
+
+        robot = ctx.hardware.robot_wrapper
+        teleop = ctx.hardware.teleop
+        fps = ctx.runtime.cfg.fps
+
+        if last_action is not None:
+            current = last_action
+        else:
+            obs = robot.get_observation()
+            current = {k: v for k, v in obs.items() if k in initial}
+        logger.info("Homing follower to initial position")
+        _follower_smooth_move_to(robot, current, initial, duration_s=2.0, fps=fps)
+        if teleop is not None and _teleop_supports_feedback(teleop):
+            logger.info("Homing leader to initial position")
+            _teleop_smooth_move_to(teleop, initial, duration_s=2.0, fps=fps)
+        return {k: initial[k] for k in initial}
 
     # ------------------------------------------------------------------
     # Background push (shared by both modes)

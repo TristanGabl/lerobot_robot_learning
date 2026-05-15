@@ -10,6 +10,9 @@ uv pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url ht
 uv pip install -e .
 uv pip install 'lerobot[feetech,diffusion,dataset,training, viz, multi_task_dit, aloha, pusht, multi_task_dit]'
 uv pip install pynput
+uv sync --locked --extra feetech --extra diffusion --extra training --extra async --extra test --extra dev
+uv pip install torchmetrics
+git submodule update --init --recursive
 
 
 # Copy pre-existing configurations
