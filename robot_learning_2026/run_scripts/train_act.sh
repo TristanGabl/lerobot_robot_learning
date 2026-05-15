@@ -11,4 +11,5 @@ lerobot-train \
   --steps=10000 \
   --policy.use_amp=true \
   --num_workers=8 \
-  --policy.push_to_hub=true
+  --policy.push_to_hub=true \
+  --policy.private=true

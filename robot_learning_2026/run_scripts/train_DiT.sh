@@ -20,4 +20,5 @@ lerobot-train \
   --policy.device=cuda \
   --wandb.enable=true \
   --policy.push_to_hub=true \
+  --policy.private=true \
   --num_workers=8

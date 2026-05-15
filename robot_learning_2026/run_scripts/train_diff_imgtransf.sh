@@ -17,6 +17,7 @@ lerobot-train \
   --policy.use_amp=true \
   --num_workers=8 \
   --policy.push_to_hub=true \
+  --policy.private=true \
   --policy.horizon=64 \
   --policy.n_action_steps=32 \
   --policy.drop_n_last_frames=31 \
