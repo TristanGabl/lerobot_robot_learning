@@ -10,7 +10,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either exprImage (1363x176)ess or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
@@ -29,6 +29,9 @@ import math
 from collections import deque
 from typing import TYPE_CHECKING
 
+from pathlib import Path
+import sys
+
 import einops
 import torch
 import torch.nn as nn
@@ -39,6 +42,8 @@ from torch import Tensor
 from lerobot.utils.import_utils import _diffusers_available, _transformers_available, require_package
 
 from .configuration_multi_task_dit import MultiTaskDiTConfig
+
+from ..diffusion.modeling_diffusion import SpatialSoftmax
 
 # Conditional import for type checking and lazy loading
 if TYPE_CHECKING or _transformers_available:
@@ -62,7 +67,8 @@ from lerobot.utils.constants import (
 )
 
 from ..pretrained import PreTrainedPolicy
-from ..utils import populate_queues
+from ..utils import populate_queues, get_output_shape
+
 
 # -- Policy --
 
@@ -71,11 +77,13 @@ class MultiTaskDiTPolicy(PreTrainedPolicy):
     config_class = MultiTaskDiTConfig
     name = "multi_task_dit"
 
-    def __init__(self, config: MultiTaskDiTConfig, **kwargs):
+    def __init__(self, config: MultiTaskDiTConfig, load_backbone_weights: bool | None = None, **kwargs):
         require_package("transformers", extra="multi_task_dit")
         require_package("diffusers", extra="multi_task_dit")
         super().__init__(config)
         config.validate_features()
+        if load_backbone_weights is not None:
+            config.load_backbone_weights = load_backbone_weights
         self.config = config
 
         self._queues = None
@@ -105,6 +113,11 @@ class MultiTaskDiTPolicy(PreTrainedPolicy):
             raise ValueError(f"Unsupported objective: {config.objective}")
 
         self.reset()
+
+    @classmethod
+    def from_pretrained(cls, pretrained_name_or_path, **kwargs):
+        kwargs.setdefault("load_backbone_weights", False)
+        return super().from_pretrained(pretrained_name_or_path, **kwargs)
 
     def get_optim_params(self) -> list:
         """Returns parameter groups with different learning rates for vision vs non-vision parameters"""
@@ -201,26 +214,66 @@ class MultiTaskDiTPolicy(PreTrainedPolicy):
 # -- Observation Encoders --
 
 
-class CLIPVisionEncoder(nn.Module):
-    """CLIP vision encoder using the CLS token for global image representation."""
+# class CLIPVisionEncoder(nn.Module):
+#     """CLIP vision encoder using the CLS token for global image representation."""
 
-    def __init__(self, model_name: str):
+#     def __init__(self, model_name: str):
+#         super().__init__()
+#         self.model_name = model_name
+#         self.model = CLIPVisionModel.from_pretrained(self.model_name)
+#         self.num_non_spatial_tokens = 1
+#         self.embed_dim = self.model.config.hidden_size
+
+#     def forward(self, x: Tensor) -> Tensor:
+#         """Encode RGB image to CLS token."""
+#         outputs = self.model(pixel_values=x, output_hidden_states=False)
+#         cls_token = outputs.last_hidden_state[:, 0]
+#         b, embed_dim = cls_token.shape
+#         return cls_token.reshape(b, embed_dim, 1, 1)
+
+#     def get_output_shape(self) -> tuple:
+#         return (self.embed_dim, 1, 1)
+
+
+class DINOv3VisionEncoder(nn.Module): # TODO Tristan: change num_keypoints
+    def __init__(self, model_name: str, input_shape: tuple[int, int], num_keypoints: int = 32, load_pretrained: bool = True):
         super().__init__()
-        self.model_name = model_name
-        self.model = CLIPVisionModel.from_pretrained(self.model_name)
-        self.num_non_spatial_tokens = 1
-        self.embed_dim = self.model.config.hidden_size
+
+        _REPO_ROOT = Path(__file__).parents[4]
+        DINOV3_REPO = str(_REPO_ROOT / "robot_learning_2026" / "dinov3")
+        DINOV3_WEIGHTS = str(_REPO_ROOT / "robot_learning_2026" / "dinov3_vits16_pretrain_lvd1689m-08c60483.pth")
+
+        repo_path = Path(DINOV3_REPO)
+        if not repo_path.is_dir() or not any(repo_path.iterdir()):
+            raise FileNotFoundError(f"DINOv3 repo not found or empty at {DINOV3_REPO}")
+        if load_pretrained and not Path(DINOV3_WEIGHTS).is_file():
+            raise FileNotFoundError(f"DINOv3 weights not found at {DINOV3_WEIGHTS}")
+
+        if DINOV3_REPO not in sys.path:
+            sys.path.insert(0, DINOV3_REPO)
+
+        self.backbone = torch.hub.load(
+            repo_or_dir=DINOV3_REPO,
+            model="dinov3_vits16",
+            source="local",
+            pretrained=load_pretrained,
+            weights=DINOV3_WEIGHTS,
+        )
+
+        with torch.no_grad():
+            dummy = torch.zeros(1, 3, *input_shape)
+            feat = self.backbone.get_intermediate_layers(dummy, n=1, reshape=True, norm=True)[0]
+            feature_map_shape = tuple(feat.shape[1:])  # (C, H, W)
+
+        self.pool = SpatialSoftmax(feature_map_shape, num_kp=num_keypoints)
+        self.feature_dim = num_keypoints * 2
 
     def forward(self, x: Tensor) -> Tensor:
-        """Encode RGB image to CLS token."""
-        outputs = self.model(pixel_values=x, output_hidden_states=False)
-        cls_token = outputs.last_hidden_state[:, 0]
-        b, embed_dim = cls_token.shape
-        return cls_token.reshape(b, embed_dim, 1, 1)
+        feat = self.backbone.get_intermediate_layers(x, n=1, reshape=True, norm=True)[0]
+        return self.pool(feat).flatten(start_dim=1).unsqueeze(-1).unsqueeze(-1)  # (B, feature_dim, 1, 1)
 
     def get_output_shape(self) -> tuple:
-        return (self.embed_dim, 1, 1)
-
+        return (self.feature_dim, 1, 1)
 
 class CLIPTextEncoder(nn.Module):
     """CLIP text encoder with frozen weights and a learnable projection layer.
@@ -267,13 +320,22 @@ class ObservationEncoder(nn.Module):
             self.num_cameras = len(config.image_features)
             self.camera_names = list(config.image_features.keys())
 
-            if config.use_separate_rgb_encoder_per_camera:
+            images_shape = next(iter(config.image_features.values())).shape
+            if config.image_crop_shape is not None:
+                input_shape_h_w = config.image_crop_shape
+            elif config.image_resize_shape is not None:
+                input_shape_h_w = config.image_resize_shape
+            else:
+                input_shape_h_w = images_shape[1:]
+            
+
+            if config.use_separate_rgb_encoder_per_camera: 
                 self.vision_encoders = nn.ModuleList(
-                    [CLIPVisionEncoder(model_name=config.vision_encoder_name) for _ in self.camera_names]
+                    [DINOv3VisionEncoder(model_name=config.vision_encoder_name, input_shape=input_shape_h_w, load_pretrained=config.load_backbone_weights) for _ in self.camera_names]
                 )
                 self.vision_encoder = None
             else:
-                self.vision_encoder = CLIPVisionEncoder(model_name=config.vision_encoder_name)
+                self.vision_encoder = DINOv3VisionEncoder(model_name=config.vision_encoder_name, input_shape=input_shape_h_w, load_pretrained=config.load_backbone_weights)
                 self.vision_encoders = None
         else:
             self.vision_encoder = None
@@ -286,8 +348,10 @@ class ObservationEncoder(nn.Module):
         else:
             self.robot_state_dim = 0
 
-        self.text_dim = config.hidden_dim
-        self.text_encoder = CLIPTextEncoder(model_name=config.text_encoder_name, projection_dim=self.text_dim)
+        # self.text_dim = config.hidden_dim
+        # self.text_encoder = CLIPTextEncoder(model_name=config.text_encoder_name, projection_dim=self.text_dim)
+        self.text_encoder = None
+        self.text_dim = 0
 
         self._setup_vector_output()
 
