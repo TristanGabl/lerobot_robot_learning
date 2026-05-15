@@ -8,7 +8,7 @@ source .venv/bin/activate #activate virtual environment
 uv pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu128
 
 uv pip install -e .
-uv pip install 'lerobot[feetech,diffusion,dataset,training, viz, multi_task_dit, aloha, pusht]'
+uv pip install 'lerobot[feetech,diffusion,dataset,training, viz, multi_task_dit, aloha, pusht, multi_task_dit]'
 uv pip install pynput
 
 

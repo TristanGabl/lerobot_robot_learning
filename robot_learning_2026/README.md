@@ -15,7 +15,7 @@ Create a virtual environment and install dependencies:
 ```bash
 # all in one (inludeds dependencies for Asynchronous Inference)
 brew install ffmpeg   # macOS (one-time system dep)
-uv sync --locked --extra feetech --extra diffusion --extra training --extra async --extra test --extra dev
+uv sync --locked --extra feetech --extra diffusion --extra training -extra multi_task_dit --extra async --extra test --extra dev
 ```
 
 or split up
