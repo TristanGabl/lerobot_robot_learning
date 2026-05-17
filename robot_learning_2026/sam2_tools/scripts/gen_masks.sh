@@ -1,0 +1,11 @@
+python scripts/generate_cloth_masks_sam2.py \
+  --input-video scripts/wrist_camera_10s.mp4 \
+  --output-mask-dir masks/wrist_camera_10s \
+  --checkpoint checkpoints/sam2.1_hiera_small.pt \
+  --model-cfg configs/sam2.1/sam2.1_hiera_s.yaml \
+  --point 310 260 \
+  --point 370 300 \
+  --neg-point 220 120 \
+  --neg-point 500 100 \
+  --save-overlays \
+  --overwrite

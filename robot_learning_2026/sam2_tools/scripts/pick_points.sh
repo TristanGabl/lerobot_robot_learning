@@ -1,0 +1,2 @@
+VIDEO_PATH="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_general_tristan/videos/observation.images.front/chunk-000/file-005.mp4"
+python scripts/pick_points.py   --video "$VIDEO_PATH"   --correction-mode --frame 2750
