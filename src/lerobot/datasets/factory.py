@@ -130,4 +130,18 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | MultiLeRobotDatas
             for stats_type, stats in IMAGENET_STATS.items():
                 dataset.meta.stats[key][stats_type] = torch.tensor(stats, dtype=torch.float32)
 
+    # ----- Added to support mask recoloring -----
+    if getattr(cfg.dataset, "masks_dir", None) is not None:
+        from lerobot.datasets.recoloring_dataset import RecoloringLeRobotDataset
+        dataset = RecoloringLeRobotDataset(
+            dataset, 
+            masks_dir=cfg.dataset.masks_dir,
+            recolor_prob=getattr(cfg.dataset, "recolor_prob", 1.0),
+            target_hue_range=getattr(cfg.dataset, "recolor_hue_range", None),
+            target_sat_range=getattr(cfg.dataset, "recolor_sat_range", None),
+            value_factor_range=getattr(cfg.dataset, "recolor_val_range", None),
+            debug_dir=getattr(cfg.dataset, "recolor_debug_dir", None)
+        )
+
+
     return dataset

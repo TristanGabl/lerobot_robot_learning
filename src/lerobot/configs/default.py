@@ -27,6 +27,16 @@ class DatasetConfig:
     # "dataset_index" into the returned item. The index mapping is made according to the order in which the
     # datasets are provided.
     repo_id: str
+    
+    # --- Added to support mask recoloring wrapper ---
+    masks_dir: str | None = None
+    recolor_prob: float = 1.0
+    recolor_hue_range: list[int] | None = None
+    recolor_sat_range: list[int] | None = None
+    recolor_val_range: list[float] | None = None
+    recolor_debug_dir: str | None = None
+    # ---------------------------------------------
+
     # Root directory for a concrete local dataset tree (e.g. 'dataset/path'). If None, local datasets are
     # looked up under $HF_LEROBOT_HOME/repo_id and Hub downloads use a revision-safe cache under $HF_LEROBOT_HOME/hub.
     root: str | None = None
