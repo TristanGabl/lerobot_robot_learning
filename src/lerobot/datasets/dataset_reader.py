@@ -286,10 +286,10 @@ class DatasetReader:
             video_frames = self._query_videos(query_timestamps, ep_idx)
             item = {**video_frames, **item}
 
-        # if self._image_transforms is not None:
-        #     image_keys = self._meta.camera_keys
-        #     for cam in image_keys:
-        #         item[cam] = self._image_transforms(item[cam])
+        if self._image_transforms is not None:
+            image_keys = self._meta.camera_keys
+            for cam in image_keys:
+                item[cam] = self._image_transforms(item[cam])
 
         # Add task as a string
         task_idx = item["task_index"].item()

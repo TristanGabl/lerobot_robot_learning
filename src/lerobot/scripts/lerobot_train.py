@@ -456,9 +456,6 @@ def train(cfg: TrainPipelineConfig, accelerator: "Accelerator | None" = None):
 
     for _ in range(step, cfg.steps):
         start_time = time.perf_counter()
-        dataset.steps_counter = step
-        if dataset.transforms_refresh > 0 and step % dataset.transforms_refresh == 0:
-            dataset.transform_full_dataset()
         batch = next(dl_iter)
         for cam_key in dataset.meta.camera_keys:
             if cam_key in batch and batch[cam_key].dtype == torch.uint8:
