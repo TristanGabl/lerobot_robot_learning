@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VIDEO_PATH="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_general_tristan/videos/observation.images.front/chunk-000/file-005.mp4"
-LOG_FILE="out-005.log"
-PREFETCH_FRAMES_DIR="point_frames_005"
-CHUNK_SIZE=540
-N_CHUNKS=40
+VIDEO_PATH="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_tristan_300eps/videos/observation.images.front/chunk-000/file-007.mp4"
+LOG_FILE="out-300ep-007.log"
+PREFETCH_FRAMES_DIR="point_frames_300ep_007"
+CHUNK_SIZE=270
+N_CHUNKS=100
 
 mkdir -p "$PREFETCH_FRAMES_DIR"
 

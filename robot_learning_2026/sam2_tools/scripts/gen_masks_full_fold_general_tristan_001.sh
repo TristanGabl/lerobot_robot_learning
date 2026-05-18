@@ -6,7 +6,7 @@ set -euo pipefail
 
 CORRECTION=false
 
-VIDEO_PATH="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_general_tristan/videos/observation.images.front/chunk-000/file-001.mp4"
+VIDEO_PATH="tmp_videos/file-001.mp4"
 OUTPUT_MASK_DIR="masks/full_fold_general_tristan/chunk-000/file-001"
 
 SCRIPT="scripts/generate_cloth_masks_sam2_chunked.py"
