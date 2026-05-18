@@ -29,5 +29,8 @@ lerobot-train \
   --policy.push_to_hub=true \
   --policy.private=true \
   --num_workers=8 \
+  --dataset.image_transforms.enable=true \
+  --dataset.image_transforms.max_num_transforms=1 \
+  --dataset.image_transforms.random_order=false \
   '--dataset.image_transforms.tfs={"identity":{"type":"Identity","weight":0.8,"kwargs":{}},"color_jitter":{"type":"ColorJitter","weight":0.2,"kwargs":{"brightness":[0.5,1.5],"contrast":[0.8,1.2],"saturation":[0.8,1.2],"hue":[-0.03,0.03]}}}' \
   --dataset.transforms_refresh=100000
