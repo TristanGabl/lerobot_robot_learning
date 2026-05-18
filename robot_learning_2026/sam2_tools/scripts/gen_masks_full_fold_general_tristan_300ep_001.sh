@@ -6,8 +6,9 @@ set -euo pipefail
 
 CORRECTION=false
 
-VIDEO_PATH="tmp_videos/file-000.mp4"
-OUTPUT_MASK_DIR="masks/full_fold_general_tristan/chunk-000/file-000"
+VIDEO_PATH=/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_tristan_300eps/videos/observation.images.front/chunk-000/file-001.mp4
+OUTPUT_MASK_DIR="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_tristan_300eps/masks/observation.images.front/chunk-000/file-001/"
+
 
 SCRIPT="scripts/generate_cloth_masks_sam2_chunked.py"
 CHECKPOINT="sam2/checkpoints/sam2.1_hiera_small.pt"
@@ -59,7 +60,6 @@ PLANNED_PROMPTS=(
   --correction 1350:424,544,1
   --correction 1350:458,180,1
   --correction 1350:427,97,0
-  --correction 1350:447,281,0
   --correction 1350:367,347,0
   --correction 1350:241,70,0
   --correction 1350:75,480,0
@@ -138,7 +138,6 @@ PLANNED_PROMPTS=(
   --correction 4050:439,138,1
   --correction 4050:433,84,1
   --correction 4050:394,371,0
-  --correction 4050:398,274,0
   --correction 4050:272,528,0
   --correction 4050:136,153,0
   --correction 4320:54,289,1
@@ -262,11 +261,7 @@ PLANNED_PROMPTS=(
   --correction 7830:181,240,1
   --correction 7830:56,112,1
   --correction 7830:56,213,1
-  --correction 7830:8,424,1
-  --correction 7830:33,482,1
-  --correction 7830:13,385,1
   --correction 7830:29,341,1
-  --correction 7830:29,486,1
   --correction 7830:31,461,1
   --correction 7830:233,444,0
   --correction 7830:270,171,0
@@ -330,11 +325,6 @@ PLANNED_PROMPTS=(
   --correction 9720:270,434,1
   --correction 9720:322,298,1
   --correction 9720:398,546,1
-  --correction 9720:439,382,0
-  --correction 9720:455,258,0
-  --correction 9720:455,147,0
-  --correction 9720:456,147,1
-  --correction 9720:458,124,1
   --correction 9720:446,135,1
   --correction 9720:436,178,1
   --correction 9720:442,460,1
@@ -367,7 +357,6 @@ PLANNED_PROMPTS=(
   --correction 10260:117,145,0
   --correction 10260:113,591,0
   --correction 10530:117,583,1
-  --correction 10530:351,317,1
   --correction 10530:340,324,1
   --correction 10530:279,421,1
   --correction 10530:415,508,1
@@ -514,7 +503,6 @@ PLANNED_PROMPTS=(
   --correction 14850:435,385,0
   --correction 14850:388,550,0
   --correction 14850:448,92,0
-  --correction 14850:415,8,0
   --correction 15120:288,305,1
   --correction 15120:343,240,1
   --correction 15120:450,244,1
@@ -541,9 +529,7 @@ PLANNED_PROMPTS=(
   --correction 15930:82,576,1
   --correction 15930:197,423,1
   --correction 15930:365,272,1
-  --correction 15930:336,245,1
   --correction 15930:364,521,1
-  --correction 15930:444,402,0
   --correction 15930:399,358,0
   --correction 15930:409,109,0
   --correction 15930:181,236,0
@@ -552,7 +538,6 @@ PLANNED_PROMPTS=(
   --correction 16200:173,128,1
   --correction 16200:75,186,1
   --correction 16200:78,527,1
-  --correction 16200:244,415,1
   --correction 16200:269,387,1
   --correction 16200:403,602,0
   --correction 16200:444,384,0
@@ -659,7 +644,6 @@ PLANNED_PROMPTS=(
   --correction 19440:321,220,1
   --correction 19440:312,363,1
   --correction 19440:426,481,1
-  --correction 19440:271,52,1
   --correction 19440:262,59,1
   --correction 19440:435,223,0
   --correction 19440:433,369,0
@@ -680,7 +664,6 @@ PLANNED_PROMPTS=(
   --correction 19980:274,119,1
   --correction 19980:62,497,1
   --correction 19980:248,230,1
-  --correction 19980:71,117,1
   --correction 19980:347,546,0
   --correction 19980:419,380,0
   --correction 19980:441,226,0
@@ -707,14 +690,6 @@ PLANNED_PROMPTS=(
   --correction 20790:195,351,1
   --correction 20790:315,156,1
   --correction 20790:303,341,1
-  --correction 20790:329,61,1
-  --correction 20790:261,41,1
-  --correction 20790:458,214,0
-  --correction 20790:452,389,0
-  --correction 20790:443,456,1
-  --correction 20790:400,152,1
-  --correction 20790:462,302,1
-  --correction 20790:39,173,1
   --correction 20790:259,44,1
   --correction 20790:389,140,1
   --correction 20790:446,486,1
@@ -748,8 +723,6 @@ PLANNED_PROMPTS=(
   --correction 21600:353,376,1
   --correction 21600:396,354,0
   --correction 21600:392,279,0
-  --correction 21600:250,215,0
-  --correction 21600:247,148,1
   --correction 21600:213,146,0
   --correction 21600:156,525,0
   --correction 21600:425,122,0

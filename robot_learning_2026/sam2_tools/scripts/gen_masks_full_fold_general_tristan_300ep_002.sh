@@ -6,8 +6,9 @@ set -euo pipefail
 
 CORRECTION=false
 
-VIDEO_PATH="tmp_videos/file-000.mp4"
-OUTPUT_MASK_DIR="masks/full_fold_general_tristan/chunk-000/file-000"
+VIDEO_PATH=/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_tristan_300eps/videos/observation.images.front/chunk-000/file-002.mp4
+OUTPUT_MASK_DIR="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_tristan_300eps/masks/observation.images.front/chunk-000/file-002/"
+
 
 SCRIPT="scripts/generate_cloth_masks_sam2_chunked.py"
 CHECKPOINT="sam2/checkpoints/sam2.1_hiera_small.pt"

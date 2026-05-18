@@ -6,8 +6,8 @@ set -euo pipefail
 
 CORRECTION=false
 
-VIDEO_PATH="tmp_videos/file-000.mp4"
-OUTPUT_MASK_DIR="masks/full_fold_general_tristan/chunk-000/file-000"
+VIDEO_PATH="scripts/??.mp4"
+OUTPUT_MASK_DIR="masks/full_fold_general_tristan/chunk-000"
 
 SCRIPT="scripts/generate_cloth_masks_sam2_chunked.py"
 CHECKPOINT="sam2/checkpoints/sam2.1_hiera_small.pt"
