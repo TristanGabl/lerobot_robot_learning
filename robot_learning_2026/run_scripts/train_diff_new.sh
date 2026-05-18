@@ -1,10 +1,10 @@
 # Train a diffusion policy on the collected dataset
 
 lerobot-train \
-  --dataset.repo_id="DerBoroter/full_fold_tristan_300eps" \
+  --dataset.repo_id="DerBoroter/full_fold_improved" \
   --policy.type="diffusion" \
-  --policy.repo_id="DerBoroter/full_fold_tristan_300eps_dino" \
-  --output_dir=outputs/train/full_fold_tristan_with_recovery_$(date +%Y%m%d_%H%M%S) \
+  --policy.repo_id="DerBoroter/full_fold_improved_dino" \
+  --output_dir=outputs/train/full_fold_improved_$(date +%Y%m%d_%H%M%S) \
   --job_name=diffusion_fold \
   --policy.device=cuda \
   --wandb.enable=true \
@@ -13,8 +13,8 @@ lerobot-train \
   --steps=50000 \
   --save_freq=10000 \
   --eval_freq=10000000 \
-  --policy.resize_shape=[341,256] \
-  --policy.crop_shape=[256,256] \
+  --policy.resize_shape=[360,640] \
+  --policy.crop_shape=[320,480] \
   --policy.use_amp=true \
   --num_workers=8 \
   --policy.push_to_hub=true \
