@@ -92,7 +92,7 @@ class DiffusionPolicy(PreTrainedPolicy):
         kwargs.setdefault("load_backbone_weights", False)
         return super().from_pretrained(pretrained_name_or_path, **kwargs)
 
-    def get_optim_params(self, lr) -> dict:
+    def get_optim_params(self) -> dict:
         if self.config.use_separate_rgb_encoder_per_camera:
             backbone_params = [p for enc in self.diffusion.rgb_encoder for p in enc.backbone.parameters()]
         else:
@@ -100,7 +100,7 @@ class DiffusionPolicy(PreTrainedPolicy):
 
         backbone_ids = {id(p) for p in backbone_params}
         return [
-            {"params": backbone_params, "lr": lr * self.config.backbone_lr_factor, "name": "backbone"},
+            {"params": backbone_params, "lr": self.config.optimizer_lr * self.config.backbone_lr_factor, "name": "backbone"},
             {"params": [p for p in self.parameters() if id(p) not in backbone_ids], "name": "diffusion"},
         ]
 

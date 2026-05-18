@@ -331,7 +331,7 @@ class ObservationEncoder(nn.Module):
 
             if config.use_separate_rgb_encoder_per_camera: 
                 self.vision_encoders = nn.ModuleList(
-                    [DINOv3VisionEncoder(model_name=config.vision_encoder_name, input_shape=input_shape_h_w, load_pretrained=config.load_backbone_weights) for _ in self.camera_names]
+                    [DINOv3VisionEncoder(model_name=config.vision_encoder_name, input_shape=input_shape_h_w, load_pretrained=config.load_backbone_weights, num_keypoints=config.vision_num_keypoints) for _ in self.camera_names]
                 )
                 self.vision_encoder = None
             else:

@@ -76,6 +76,7 @@ class MultiTaskDiTConfig(PreTrainedConfig):
     image_crop_shape: tuple[int, int] | None = (224, 224)  # Crop shape (CLIP default)
     image_crop_is_random: bool = True  # Random crop during training, center at inference
     load_backbone_weights: bool = True # load pretrained checkpoint
+    vision_num_keypoints: int = 32 
 
     # Text Encoder (CLIP) # gets ignored
     text_encoder_name: str = "openai/clip-vit-base-patch16"  # HuggingFace CLIP model
