@@ -40,6 +40,9 @@ from .io_utils import load_episodes, write_stats
 from .lerobot_dataset import LeRobotDataset
 from .multi_dataset import MultiLeRobotDataset
 from .pipeline_features import aggregate_pipeline_dataset_features, create_initial_features
+# ----- Added to support mask recoloring ----- 
+from .recoloring_dataset import RecoloringLeRobotDataset
+# --------------------------------------------
 from .sampler import EpisodeAwareSampler
 from .streaming_dataset import StreamingLeRobotDataset
 from .utils import DEFAULT_EPISODES_PATH, create_lerobot_dataset_card
@@ -57,6 +60,7 @@ __all__ = [
     "LeRobotDataset",
     "LeRobotDatasetMetadata",
     "MultiLeRobotDataset",
+    "RecoloringLeRobotDataset",
     "StreamingLeRobotDataset",
     "VideoEncodingManager",
     "add_features",

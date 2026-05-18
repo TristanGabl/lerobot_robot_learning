@@ -30,8 +30,21 @@ pip install opencv-python
 
 
 ## my_workflow
-pick_points_batches.sh: prefetches all the frames to pick the points for sam2 and start pick points process
-gen_masks_*: generate the masks, this will leave holes if a batch doesn't have start frame
-fill_missing_empty_masks.py: fill with empty masks holes left in gen_masks
-recolor.sh: test out the masks by generating a new video with recolored cloth based on masks
+
+1) Prefetc all the frames to pick the points for sam2 and start pick points process
+
+    `scripts/pick_points_batches.sh`
+
+- Generate the masks, this will leave holes if a batch doesn't have start frame
+
+    `scripts/gen_masks_path.sh`
+
+- Test empty masks to fill holes left in gen_masks
+    `scripts/fill_missing_empty_mask.py --masks-path=path/to/masks --dry-run`
+
+- Fill in empty masks
+    `scripts/fill_missing_empty_mask.py --masks-path=path/to/masks`
+
+- Inspect result by generating a new video with recolored cloth based on masks
+    `scripts/color.sh`
 

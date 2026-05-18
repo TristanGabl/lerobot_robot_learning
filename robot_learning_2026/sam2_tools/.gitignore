@@ -1,0 +1,6 @@
+# ignore sam2 directory
+sam2/
+
+# ignore mp4 and png files everywhere
+*.mp4
+*.png
