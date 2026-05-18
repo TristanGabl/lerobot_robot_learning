@@ -1,4 +1,4 @@
-# Train a diffusion policy on the collected dataset
+# Train a DiT policy on the collected dataset
 
 lerobot-train \
   --dataset.repo_id="DerBoroter/full_fold_tristan_300eps" \
@@ -7,20 +7,24 @@ lerobot-train \
   --policy.type="multi_task_dit" \
   --policy.horizon=64 \
   --policy.n_action_steps=32 \
-  --policy.horizon=48 \
   --policy.hidden_dim=768 \
   --policy.num_heads=12 \
   --policy.num_layers=7 \
   --policy.timestep_embed_dim=384 \
   --policy.drop_n_last_frames=31 \
-  --policy.objective=diffusion \
+  --policy.objective=flow_matching \
+  --policy.num_integration_steps=10 \
+  --policy.timestep_sampling_strategy=beta \
   --policy.image_resize_shape=[341,256] \
   --policy.image_crop_shape=[256,256] \
   --policy.vision_num_keypoints=64 \
-  --policy.image_crop_shape=null \
+  --policy.use_separate_rgb_encoder_per_camera=true \
+  --policy.optimizer_lr=1e-4 \
+  --policy.scheduler_warmup_steps=500 \
+  --policy.optimizer_weight_decay=1e-6 \
   --policy.use_amp=true \
   --batch_size=64 \
-  --steps=50000 \
+  --steps=100000 \
   --save_freq=10000 \
   --eval_freq=5000 \
   --job_name=DiT_grab \
