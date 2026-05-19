@@ -29,6 +29,8 @@ lerobot-train \
   --eval_freq=5000 \
   --job_name=DiT_grab \
   --policy.device=cuda \
+  --wandb.project=derRoboter \
+  --wandb.entity=derRoboter \
   --wandb.enable=true \
   --policy.push_to_hub=true \
   --policy.private=true \

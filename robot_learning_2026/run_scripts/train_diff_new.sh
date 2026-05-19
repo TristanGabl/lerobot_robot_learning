@@ -9,6 +9,7 @@ lerobot-train \
   --policy.device=cuda \
   --wandb.enable=true \
   --wandb.project=derRoboter \
+  --wandb.entity=derRoboter \ 
   --batch_size=64 \
   --steps=70000 \
   --save_freq=10000 \
