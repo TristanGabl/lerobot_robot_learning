@@ -25,7 +25,6 @@ lerobot-train \
   --policy.pretrained_backbone_weights="dinov3_vits16" \
   --policy.backbone_lr_factor=0.1 \
   --policy.use_group_norm=false \
-  --dataset.video_backend=pyav \
   --dataset.image_transforms.enable=true \
   --dataset.image_transforms.max_num_transforms=1 \
   --dataset.image_transforms.random_order=false \
