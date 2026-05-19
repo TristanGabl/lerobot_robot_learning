@@ -11,11 +11,10 @@ lerobot-train \
   --wandb.project=derRoboter \
   --wandb.entity=derRoboter \ 
   --batch_size=64 \
-  --steps=70000 \
+  --steps=50000 \
   --save_freq=10000 \
   --eval_freq=10000000 \
-  --policy.resize_shape=[320,192] \
-  --policy.crop_shape=null \
+  --policy.resize_shape=[320,240] \
   --policy.use_amp=true \
   --num_workers=16 \
   --policy.push_to_hub=true \
@@ -30,7 +29,7 @@ lerobot-train \
   --dataset.image_transforms.enable=true \
   --dataset.image_transforms.max_num_transforms=1 \
   --dataset.image_transforms.random_order=false \
-  '--dataset.image_transforms.tfs={"identity":{"type":"Identity","weight":0.7,"kwargs":{}},"color_jitter":{"type":"ColorJitter","weight":0.3,"kwargs":{"brightness":[0.7,1.3]}}}' \
+  '--dataset.image_transforms.tfs={"identity":{"type":"Identity","weight":0.8,"kwargs":{}},"color_jitter":{"type":"ColorJitter","weight":0.1,"kwargs":{"brightness":[0.7,1.3]}}}' \
   
 
 
