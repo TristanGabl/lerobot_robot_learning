@@ -214,10 +214,23 @@ class RecoloringLeRobotDataset(Dataset):
                         cv2.imwrite(str(mask_save_path), mask_img)
                 
                 # Convert back -> PyTorch RGB float
+                #recolored_rgb = cv2.cvtColor(recolored_bgr, cv2.COLOR_BGR2RGB)
+
+                # ----------PATCH
+                orig_dtype = im_stack.dtype
+
                 recolored_rgb = cv2.cvtColor(recolored_bgr, cv2.COLOR_BGR2RGB)
-                recolored_tensor = torch.from_numpy(np.transpose(recolored_rgb, (2, 0, 1))).float() / 255.0
-                
+                recolored_chw_u8 = np.transpose(recolored_rgb, (2, 0, 1))
+                #recolored_tensor = torch.from_numpy(np.transpose(recolored_rgb, (2, 0, 1))).float() / 255.0
+                recolored_tensor = torch.from_numpy(recolored_chw_u8)
+
+                if orig_dtype.is_floating_point:
+                    recolored_tensor = recolored_tensor.float() / 255.0
+                else:
+                    recolored_tensor = recolored_tensor.to(orig_dtype)
+                                
                 recolored_frames.append(recolored_tensor)
+                # ----------------------------------
             
             # Reconstruct Tensor Stack
             recolored_stack = torch.stack(recolored_frames)
@@ -239,7 +252,21 @@ class RecoloringLeRobotDataset(Dataset):
                 print("camera", cam, "deltas", deltas)
                 print("num temporal frames:", len(deltas))
                 self._save_temporal_stack_debug(item[cam], out, max_frames=32)
-                
+                print(
+                    "AFTER debug:",
+                    cam,
+                    item[cam].dtype,
+                    item[cam].min().item(),
+                    item[cam].max().item(),
+                    item[cam].shape,
+                )
+
+        # Extra check to assert the same LeRobot format
+        for cam in self.camera_keys:
+            if cam in item:
+                assert item[cam].dtype == torch.uint8, (
+                    cam, item[cam].dtype, item[cam].min().item(), item[cam].max().item()
+                )      
         return item
 
 
@@ -282,16 +309,26 @@ class RecoloringLeRobotDataset(Dataset):
     ) -> None:
         """
         Save [T,C,H,W] or [C,H,W] tensor as a horizontal strip.
-        Assumes RGB float tensor in [0,1].
+        Supports:
+        float tensors in [0,1]
+        uint8 tensors in [0,255]
+        Assumes RGB channel order.
         """
         if tensor.ndim == 3:
             tensor = tensor.unsqueeze(0)
 
         frames = []
         for t in range(min(tensor.shape[0], max_frames)):
-            img = tensor[t].detach().cpu().numpy()
-            img = np.transpose(img, (1, 2, 0))
-            img_u8 = (np.clip(img, 0, 1) * 255).astype(np.uint8)
+            frame = tensor[t].detach().cpu()
+
+            # CHW -> HWC
+            img = frame.permute(1, 2, 0).numpy()
+
+            if img.dtype == np.uint8:
+                img_u8 = img
+            else:
+                img_u8 = (np.clip(img, 0.0, 1.0) * 255).astype(np.uint8)
+
             img_bgr = cv2.cvtColor(img_u8, cv2.COLOR_RGB2BGR)
 
             cv2.putText(
