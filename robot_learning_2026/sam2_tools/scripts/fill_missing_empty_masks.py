@@ -62,6 +62,12 @@ def main() -> None:
         help="Only print what would be created.",
     )
 
+    parser.add_argument(
+        "--print-all",
+        action="store_true",
+        help="Print all missing mask indices.",
+    )
+
     args = parser.parse_args()
 
     mask_dir = Path(args.mask_dir).expanduser().resolve()
@@ -94,6 +100,11 @@ def main() -> None:
     print("First missing:")
     for i in missing[:20]:
         print(f"  {i:0{args.digits}d}.png")
+
+    if args.print_all:
+        print("All missing:")
+        for i in missing:
+            print(f"  {i:0{args.digits}d}.png")
 
     if args.dry_run:
         print("\nDry run only. No files written.")

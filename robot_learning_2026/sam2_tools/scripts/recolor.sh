@@ -1,8 +1,11 @@
 python scripts/recolor_video_from_masks.py \
-  --input-video scripts/test_long.mp4 \
-  --mask-dir masks/full_fold_general_tristan/chunk-000 \
-  --output-video scripts/long_test_red.mp4 \
+  --input-video /home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_tristan_300eps/videos/observation.images.front/chunk-000/file-004.mp4 \
+  --mask-dir /home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_tristan_300eps/masks/observation.images.front/chunk-000/file-004/ \
+  --output-video scripts/300eps_white_004.mp4 \
   --target-hue 0 \
-  --target-sat 190 \
+  --target-sat 5 \
+  --target-val 235 \
+  --val-blend 0.7 \
+  --value-factor 1.0 \
   --save-overlays \
   --overwrite

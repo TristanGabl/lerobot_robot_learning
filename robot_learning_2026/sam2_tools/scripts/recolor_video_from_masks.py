@@ -105,6 +105,8 @@ def hsv_recolor_preserve_shading(
     target_hue: int,
     target_sat: int,
     value_factor: float = 1.0,
+    target_val: int | None = None,
+    val_blend: float = 0.7,
     alpha_blur: int = 9,
     mask_threshold: int = 127,
 ) -> np.ndarray:
@@ -131,13 +133,18 @@ def hsv_recolor_preserve_shading(
     recolored_hsv[..., 0][mask] = np.clip(target_hue, 0, 179)
     recolored_hsv[..., 1][mask] = np.clip(target_sat, 0, 255)
 
+    v = recolored_hsv[..., 2].astype(np.float32)
+
+    if target_val is not None:
+        target_val = np.clip(target_val, 0, 255)
+        v[mask] = (1.0 - val_blend) * v[mask] + val_blend * target_val
+
     if value_factor != 1.0:
-        v = recolored_hsv[..., 2].astype(np.float32)
         v[mask] *= value_factor
-        recolored_hsv[..., 2] = np.clip(v, 0, 255).astype(np.uint8)
+
+    recolored_hsv[..., 2] = np.clip(v, 0, 255).astype(np.uint8)
 
     recolored_bgr = cv2.cvtColor(recolored_hsv, cv2.COLOR_HSV2BGR)
-
     alpha = mask.astype(np.float32) * 255.0
     if alpha_blur > 0:
         if alpha_blur % 2 == 0:
@@ -150,6 +157,7 @@ def hsv_recolor_preserve_shading(
     return np.clip(out, 0, 255).astype(np.uint8)
 
 
+    
 def make_overlay(frame_bgr: np.ndarray, mask_u8: np.ndarray, mask_threshold: int) -> np.ndarray:
     mask = mask_u8 > mask_threshold
     overlay = frame_bgr.copy()
@@ -170,6 +178,12 @@ def main() -> None:
     parser.add_argument("--target-hue", type=int, default=60)
     parser.add_argument("--target-sat", type=int, default=190)
     parser.add_argument("--value-factor", type=float, default=1.0)
+    parser.add_argument(
+        "--target-val",
+        type=int,
+        default=None,
+        help="Optional target HSV value/brightness 0..255. If set, moves masked pixels toward this V.",
+)
 
     parser.add_argument("--alpha-blur", type=int, default=9)
     parser.add_argument("--mask-threshold", type=int, default=127)
@@ -182,6 +196,13 @@ def main() -> None:
             "Mask filename offset. Default 0 means frame index 0 uses 000000.png. "
             "Use 1 if your masks are named 000001.png for the first frame."
         ),
+    )
+
+    parser.add_argument(
+        "--val-blend",
+        type=float,
+        default=0.7,
+        help="How strongly to blend masked pixels toward --target-val. 0 keeps original V, 1 forces target V.",
     )
 
     parser.add_argument("--save-overlays", action="store_true")
@@ -265,6 +286,8 @@ def main() -> None:
             target_hue=args.target_hue,
             target_sat=args.target_sat,
             value_factor=args.value_factor,
+            target_val=args.target_val,
+            val_blend=args.val_blend,
             alpha_blur=args.alpha_blur,
             mask_threshold=args.mask_threshold,
         )
