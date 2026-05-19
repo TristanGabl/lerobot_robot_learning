@@ -126,6 +126,9 @@ class DiffusionConfig(PreTrainedConfig):
     use_group_norm: bool = False
     spatial_softmax_num_keypoints: int = 32
     use_separate_rgb_encoder_per_camera: bool = True
+    use_grayscale: bool = False
+    save_train_samples: bool = False
+    save_train_samples_prob: float = 0.01
     backbone_lr_factor: float = 1.0
     # Unet.
     down_dims: tuple[int, ...] = (512, 1024, 2048)

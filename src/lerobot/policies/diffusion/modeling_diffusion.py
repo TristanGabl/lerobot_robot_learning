@@ -32,6 +32,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F  # noqa: N812
 import torchvision
+import torchvision.transforms.functional as TF
+from PIL import Image
 from torch import Tensor, nn
 
 from lerobot.utils.constants import ACTION, OBS_ENV_STATE, OBS_IMAGES, OBS_STATE
@@ -153,6 +155,10 @@ class DiffusionPolicy(PreTrainedPolicy):
 
         if self.config.image_features:
             batch = dict(batch)  # shallow copy so that adding a key doesn't modify the original
+            if self.config.use_grayscale:
+                for key in self.config.image_features:
+                    batch[key] = TF.rgb_to_grayscale(batch[key], num_output_channels=3)
+
             batch[OBS_IMAGES] = torch.stack([batch[key] for key in self.config.image_features], dim=-4)
         # NOTE: It's important that this happens after stacking the images into a single key.
         self._queues = populate_queues(self._queues, batch)
@@ -171,6 +177,59 @@ class DiffusionPolicy(PreTrainedPolicy):
             for key in self.config.image_features:
                 if self.config.n_obs_steps == 1 and batch[key].ndim == 4:
                     batch[key] = batch[key].unsqueeze(1)
+
+                # ADDED: save some training samples as images for visualization/debugging. --- IGNORE ---
+                if (
+                    self.config.save_train_samples
+                    and self.training
+                    and np.random.random() < self.config.save_train_samples_prob
+                ):
+                    import os
+                    from lerobot.utils.constants import ACTION
+                    os.makedirs("outputs/train/samples", exist_ok=True)
+                    # Use a unique timestamp or step-based name if available, but for now 
+                    # we just use a random ID to avoid collision in parallel runs.
+                    sample_id = np.random.randint(0, 1000000)
+                    
+                    def to_saveable(tensor):
+                        # Detect if image is already normalized (Diffusion typically uses MEAN_STD)
+                        # but check for standard range as a heuristic.
+                        # If the stats are high/low, the image looks inverted or high contrast if we don't unnormalize.
+                        # However, since we want to see what enters the NN EXACTLY, we should consider
+                        # if we want the "raw" normalized pixels or a viewable version.
+                        # User says samples look saturated/high-contrast, which happens if we treat
+                        # normalized data (mean 0, std 1) as [0, 1] data.
+                        
+                        img = tensor.detach().cpu().numpy()
+                        
+                        # Heuristic: if values are far outside [0, 1], it's likely normalized.
+                        # We'll do a simple "standardization" for visualization:
+                        # map the current range to [0, 1] so we can at least see the features.
+                        v_min, v_max = img.min(), img.max()
+                        if v_max - v_min > 1e-5:
+                            img = (img - v_min) / (v_max - v_min)
+                        
+                        img = np.transpose(img, (1, 2, 0)) # CHW -> HWC
+                        img_u8 = (np.clip(img, 0, 1) * 255).astype(np.uint8)
+                        return Image.fromarray(img_u8)
+
+                    orig_img = to_saveable(batch[key][0, 0])
+                    
+                    if self.config.use_grayscale:
+                        # Apply grayscale to the already augmented/normalized batch
+                        gray_batch = TF.rgb_to_grayscale(batch[key], num_output_channels=3)
+                        gray_img = to_saveable(gray_batch[0, 0])
+                        # Horizontal concat
+                        combined = Image.new("RGB", (orig_img.width * 2, orig_img.height))
+                        combined.paste(orig_img, (0, 0))
+                        combined.paste(gray_img, (orig_img.width, 0))
+                        combined.save(f"outputs/train/samples/sample_{sample_id}_{key}_gray.png")
+                    else:
+                        orig_img.save(f"outputs/train/samples/sample_{sample_id}_{key}_orig.png")
+
+                if self.config.use_grayscale:
+                    batch[key] = TF.rgb_to_grayscale(batch[key], num_output_channels=3)
+
             batch[OBS_IMAGES] = torch.stack([batch[key] for key in self.config.image_features], dim=-4)
         loss = self.diffusion.compute_loss(batch)
         # no output_dict so returning None
