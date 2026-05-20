@@ -1,10 +1,16 @@
 """Wrapper around `lerobot-train` that runs a validation pass on a held-out dataset.
 
 Adds these flags on top of the normal lerobot-train CLI:
-    --val_dataset.repo_id=<repo_id>   (required to enable validation)
-    --val_dataset.root=<path>         (optional local root)
-    --val_freq=<int>                  (default 1000)
-    --val_batches=<int>               (default 20)
+    --val_dataset.repo_id=<repo_id>     (required to enable validation)
+    --val_dataset.root=<path>           (optional local root)
+    --val_freq=<int>                    (default 1000)
+    --val_batches=<int>                 (default 20)
+    --val_rollout_batches=<int>         (default 0 = off; runs full action-chunk
+                                         sampling and compares to GT chunks)
+    --val_rollout_scope=executed|full   (default "executed" — first
+                                         n_action_steps of the horizon)
+    --val_rollout_plot_samples=<int>    (default 4; per-joint pred-vs-GT plots
+                                         logged as wandb images)
 
 Example:
     uv run python robot_learning_2026/scripts/train_with_validation.py \\
@@ -37,7 +43,11 @@ def _extract_custom_args() -> dict:
         "val_dataset.root": None,
         "val_freq": 1000,
         "val_batches": 20,
+        "val_rollout_batches": 0,
+        "val_rollout_scope": "executed",  # "executed" or "full"
+        "val_rollout_plot_samples": 4,
     }
+    int_keys = {"val_freq", "val_batches", "val_rollout_batches", "val_rollout_plot_samples"}
     out = dict(defaults)
     remaining: list[str] = []
     args = sys.argv[1:]
@@ -59,8 +69,8 @@ def _extract_custom_args() -> dict:
         if not matched:
             remaining.append(a)
         i += 1
-    out["val_freq"] = int(out["val_freq"])
-    out["val_batches"] = int(out["val_batches"])
+    for k in int_keys:
+        out[k] = int(out[k])
     sys.argv = [sys.argv[0]] + remaining
     return out
 
@@ -145,6 +155,138 @@ def _next_val_batch():
         return next(STATE["val_iter"])
 
 
+def _predict_chunk(policy, batch):
+    """Run the model's action-chunk sampler bypassing the inference-time obs queue.
+
+    The val dataset already returns observations stacked over `n_obs_steps`
+    via delta_indices, so we can skip `predict_action_chunk`'s queue-stacking
+    branch (which crashes when the deployment-time queue is empty).
+    """
+    unwrapped = policy
+    prepared = unwrapped._prepare_batch(dict(batch))
+    return unwrapped._generate_actions(prepared)
+
+
+def _plot_action_chunks(pred, gt, step: int, n_samples: int):
+    """Return a list of wandb.Image objects, one per sample, of pred vs GT per joint."""
+    try:
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        import wandb
+    except Exception as e:
+        logging.debug("[validation] plotting skipped: %s", e)
+        return []
+    n = min(n_samples, pred.shape[0])
+    horizon = pred.shape[1]
+    n_dim = pred.shape[2]
+    t = list(range(horizon))
+    images = []
+    for s in range(n):
+        ncols = min(3, n_dim)
+        nrows = (n_dim + ncols - 1) // ncols
+        fig, axes = plt.subplots(nrows, ncols, figsize=(4 * ncols, 2.2 * nrows), squeeze=False)
+        for d in range(n_dim):
+            ax = axes[d // ncols][d % ncols]
+            ax.plot(t, gt[s, :, d], color="C0", label="gt", linewidth=1.5)
+            ax.plot(t, pred[s, :, d], color="C3", linestyle="--", label="pred", linewidth=1.5)
+            ax.set_title(f"dim {d}", fontsize=9)
+            ax.tick_params(labelsize=8)
+            if d == 0:
+                ax.legend(fontsize=8, loc="best")
+        for d in range(n_dim, nrows * ncols):
+            axes[d // ncols][d % ncols].axis("off")
+        fig.suptitle(f"step {step} · sample {s}", fontsize=10)
+        fig.tight_layout()
+        images.append(wandb.Image(fig))
+        plt.close(fig)
+    return images
+
+
+def _run_action_rollout(policy, accelerator, step: int) -> dict:
+    """Compare sampled action chunks to ground-truth chunks from the val dataset."""
+    from lerobot.utils.constants import ACTION
+
+    n_batches = VAL_ARGS["val_rollout_batches"]
+    scope = VAL_ARGS["val_rollout_scope"]
+    plot_n = VAL_ARGS["val_rollout_plot_samples"]
+    pre = STATE["preprocessor"]
+    val_ds = STATE["val_dataset"]
+    was_training = policy.training
+    policy.eval()
+
+    mse_sum = 0.0
+    l1_sum = 0.0
+    n_seen = 0
+    per_dim_mse_sum = None
+    plot_pred = None
+    plot_gt = None
+
+    with torch.no_grad(), accelerator.autocast():
+        for b_idx in range(n_batches):
+            batch = _next_val_batch()
+            for cam_key in val_ds.meta.camera_keys:
+                if cam_key in batch and batch[cam_key].dtype == torch.uint8:
+                    batch[cam_key] = batch[cam_key].to(dtype=torch.float32) / 255.0
+            batch = pre(batch)
+            if ACTION not in batch:
+                logging.warning("[validation] rollout: batch missing %r key, skipping", ACTION)
+                break
+            gt = batch[ACTION]  # (B, horizon, action_dim) — normalized
+            pred = _predict_chunk(policy, batch)  # (B, horizon, action_dim) — normalized
+            if pred.shape != gt.shape:
+                # Truncate to common length to be defensive across policies.
+                h = min(pred.shape[1], gt.shape[1])
+                pred = pred[:, :h]
+                gt = gt[:, :h]
+            if scope == "executed":
+                n_act = getattr(policy.config, "n_action_steps", pred.shape[1])
+                pred_s = pred[:, :n_act]
+                gt_s = gt[:, :n_act]
+            else:
+                pred_s = pred
+                gt_s = gt
+            diff = (pred_s - gt_s).float()
+            mse_sum += float(diff.pow(2).mean().item())
+            l1_sum += float(diff.abs().mean().item())
+            per_dim = diff.pow(2).mean(dim=(0, 1))  # (action_dim,)
+            per_dim_mse_sum = per_dim if per_dim_mse_sum is None else per_dim_mse_sum + per_dim
+            n_seen += 1
+            if b_idx == 0 and plot_n > 0:
+                plot_pred = pred_s.detach().float().cpu().numpy()
+                plot_gt = gt_s.detach().float().cpu().numpy()
+
+    if was_training:
+        policy.train()
+    if n_seen == 0:
+        return {}
+
+    log_dict = {
+        f"val/rollout_{scope}/action_mse": mse_sum / n_seen,
+        f"val/rollout_{scope}/action_l1": l1_sum / n_seen,
+    }
+    if per_dim_mse_sum is not None:
+        per_dim_mse = (per_dim_mse_sum / n_seen).detach().float().cpu().tolist()
+        for d, v in enumerate(per_dim_mse):
+            log_dict[f"val/rollout_{scope}/action_mse_dim{d}"] = float(v)
+
+    if plot_pred is not None and plot_n > 0:
+        images = _plot_action_chunks(plot_pred, plot_gt, step, plot_n)
+        if images:
+            log_dict[f"val/rollout_{scope}/action_chunks"] = images
+
+    logging.info(
+        "[val step=%d] rollout %s mse=%.5f l1=%.5f (%d batches)",
+        step,
+        scope,
+        log_dict[f"val/rollout_{scope}/action_mse"],
+        log_dict[f"val/rollout_{scope}/action_l1"],
+        n_seen,
+    )
+    return log_dict
+
+
 def _run_validation(policy, accelerator, step: int) -> None:
     if "val_loader" not in STATE:
         _build_val_loader()
@@ -185,8 +327,20 @@ def _run_validation(policy, accelerator, step: int) -> None:
         step,
         avg_loss,
         n,
-        "".join(f" {k}={v:.4f}" for k, v in log_dict.items() if k != "val/loss"),
+        "".join(
+            f" {k}={v:.4f}"
+            for k, v in log_dict.items()
+            if k != "val/loss" and isinstance(v, (int, float))
+        ),
     )
+
+    if VAL_ARGS["val_rollout_batches"] > 0:
+        try:
+            rollout_log = _run_action_rollout(policy, accelerator, step)
+            log_dict.update(rollout_log)
+        except Exception as e:
+            logging.warning("[validation] rollout failed: %s", e, exc_info=True)
+
     try:
         import wandb
 

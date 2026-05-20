@@ -6,7 +6,9 @@ uv run python robot_learning_2026/scripts/train_with_validation.py \
   --val_dataset.repo_id="DerBoroter/full_fold_improved" \
   --val_freq=100 \
   --val_batches=20 \
-  --policy.pretrained_path="DerBoroter/full_fold_improved_dit_diffusion" \
+  --val_rollout_batches=2 \
+  --val_rollout_scope=executed \
+  --val_rollout_plot_samples=4 \
   --policy.repo_id="DerBoroter/ben_full_fold_improved_dit_diffusion" \
   --output_dir=outputs/train/full_fold_tristan_smoke_$(date +%Y%m%d_%H%M%S) \
   --policy.type="multi_task_dit" \
