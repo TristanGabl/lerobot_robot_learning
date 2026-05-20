@@ -1,10 +1,10 @@
 # Train a diffusion policy on the collected dataset
 
 lerobot-train \
-  --dataset.repo_id="DerBoroter/full_fold_improved" \
+  --dataset.repo_id="DerBoroter/full_fold_improved_general" \
   --policy.type="diffusion" \
-  --policy.repo_id="DerBoroter/full_fold_improved_dino" \
-  --output_dir=outputs/train/full_fold_improved_$(date +%Y%m%d_%H%M%S) \
+  --policy.repo_id="DerBoroter/full_fold_improved_general_dino_color_aug" \
+  --output_dir=outputs/train/full_fold_improved_general_dino_color_aug_$(date +%Y%m%d_%H%M%S) \
   --job_name=diffusion_fold \
   --policy.device=cuda \
   --wandb.enable=true \
