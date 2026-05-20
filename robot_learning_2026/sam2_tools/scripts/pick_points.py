@@ -196,8 +196,18 @@ def main() -> None:
 
     redraw()
 
-    #cv2.namedWindow(win, cv2.WINDOW_NORMAL)
-    cv2.namedWindow(win, cv2.WINDOW_AUTOSIZE)
+    # Using WINDOW_NORMAL allows the window to be resized.
+    # WINDOW_KEEPRATIO ensures the image aspect ratio is maintained.
+    cv2.namedWindow(win, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
+    
+    # Resize the window so it fits well on typical screens (e.g. max 1600x900)
+    # OpenCV handles scaling the visual display and automatically maps mouse 
+    # coordinates back to the original image dimensions.
+    h, w = original.shape[:2]
+    scale_fit = min(1600 / max(w, 1), 900 / max(h, 1))
+    if scale_fit < 1.0:
+        cv2.resizeWindow(win, int(w * scale_fit), int(h * scale_fit))
+
     cv2.setMouseCallback(win, click)
 
     while True:

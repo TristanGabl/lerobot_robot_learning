@@ -1,16 +1,16 @@
 # Train a diffusion policy on the collected dataset
 
 lerobot-train \
-  --dataset.repo_id="full_fold_tristan_300eps" \
-  --dataset.root="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_tristan_300eps" \
+  --dataset.repo_id="full_fold_tristan_improved_general" \
+  --dataset.root="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_improved_general" \
   --policy.type="diffusion" \
   --policy.repo_id="local/testing_masks_diffusion" \
-  --output_dir=outputs/train/diffusion_fold_2cm_imgtransf$(date +%Y%m%d_%H%M%S) \
+  --output_dir=outputs/train/diffusion_improved_general$(date +%Y%m%d_%H%M%S) \
   --job_name=testing_masks \
   --policy.device=cuda \
   --wandb.enable=false \
   --batch_size=2 \
-  --steps=500 \
+  --steps=2 \
   --save_freq=25000 \
   --eval_freq=10000000 \
   --policy.resize_shape=[320,240] \
@@ -27,9 +27,9 @@ lerobot-train \
   --dataset.image_transforms.max_num_transforms=1 \
   --dataset.image_transforms.random_order=false \
   --dataset.image_transforms.tfs='{"identity":{"type":"Identity","weight":0.0,"kwargs":{}},"color_jitter":{"type":"ColorJitter","weight":1.0,"kwargs":{"brightness":[0.7, 1.1],"contrast":[0.5,1.4],"saturation":[0.5,1.4],"hue":[-0.03,0.03]}}}' \
-  --dataset.masks_dir="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_tristan_300eps/masks" \
-  --dataset.recolor_prob=0.5 \
+  --dataset.masks_dir="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_improved_general/masks" \
+  --dataset.recolor_prob=1.0 \
   --dataset.recolor_hue_range="[0,120]" \
   --dataset.recolor_sat_range="[150,220]" \
   --dataset.recolor_val_range="[0.9,1.1]"  \
-  --dataset.recolor_debug_dir="outputs/debug_images/300eps"
+  --dataset.recolor_debug_dir="outputs/debug_images/full_fold_improved_general"
