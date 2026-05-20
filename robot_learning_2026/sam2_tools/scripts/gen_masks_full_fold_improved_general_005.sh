@@ -1,0 +1,441 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+
+# --------------------- CONFIGURATION ---------------------
+
+CORRECTION=false
+
+VIDEO_PATH=/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_improved_general/videos/observation.images.front/chunk-000/file-005.mp4
+OUTPUT_MASK_DIR="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_improved_general/masks/observation.images.front/chunk-000/file-005/"
+
+SCRIPT="scripts/generate_cloth_masks_sam2_chunked.py"
+CHECKPOINT="sam2/checkpoints/sam2.1_hiera_small.pt"
+MODEL_CFG="configs/sam2.1/sam2.1_hiera_s.yaml"
+
+CHUNK_SIZE=540
+
+# ---------------------------------------------------------
+
+COMMON_ARGS=(
+  --input-video "$VIDEO_PATH"
+  --output-mask-dir "$OUTPUT_MASK_DIR"
+  --checkpoint "$CHECKPOINT"
+  --model-cfg "$MODEL_CFG"
+  --chunk-size "$CHUNK_SIZE"
+  --save-overlays
+  --overlay-every 30
+)
+
+PLANNED_PROMPTS=(
+  --correction 50:39,898,1
+  --correction 50:234,1053,0
+  --correction 50:261,679,0
+  --correction 50:234,460,0
+  --correction 50:662,529,0
+  --correction 50:678,709,0
+  --correction 270:261,775,1
+  --correction 270:395,627,1
+  --correction 270:471,830,1
+  --correction 270:488,554,1
+  --correction 270:616,839,1
+  --correction 270:677,1020,1
+  --correction 270:517,399,1
+  --correction 270:636,177,1
+  --correction 270:646,361,1
+  --correction 270:695,468,0
+  --correction 270:715,813,0
+  --correction 270:225,174,0
+  --correction 270:172,1167,0
+  --correction 540:21,545,1
+  --correction 540:39,577,1
+  --correction 540:60,758,1
+  --correction 540:184,869,1
+  --correction 540:307,585,1
+  --correction 540:167,694,1
+  --correction 540:526,919,0
+  --correction 540:616,722,0
+  --correction 540:636,570,0
+  --correction 540:191,361,0
+  --correction 810:273,717,1
+  --correction 810:595,802,1
+  --correction 810:455,656,1
+  --correction 810:572,647,1
+  --correction 810:436,489,1
+  --correction 810:435,372,1
+  --correction 810:512,190,1
+  --correction 810:656,139,1
+  --correction 810:599,386,1
+  --correction 810:695,512,0
+  --correction 810:684,761,0
+  --correction 810:254,1138,0
+  --correction 810:178,419,0
+  --correction 1080:109,670,1
+  --correction 1080:342,495,1
+  --correction 1080:385,653,1
+  --correction 1080:202,750,1
+  --correction 1080:362,890,1
+  --correction 1080:89,1007,1
+  --correction 1080:322,1149,1
+  --correction 1080:642,1079,0
+  --correction 1080:674,728,0
+  --correction 1080:159,325,0
+  --correction 1080:681,529,0
+  --correction 1350:98,868,1
+  --correction 1350:324,585,1
+  --correction 1350:380,842,1
+  --correction 1350:607,939,1
+  --correction 1350:511,708,1
+  --correction 1350:449,550,1
+  --correction 1350:392,337,1
+  --correction 1350:347,188,1
+  --correction 1350:436,232,1
+  --correction 1350:584,463,1
+  --correction 1350:497,449,1
+  --correction 1350:663,532,0
+  --correction 1350:700,747,0
+  --correction 1350:630,665,1
+  --correction 1350:678,874,1
+  --correction 1350:205,693,1
+  --correction 1350:91,342,0
+  --correction 1350:575,171,0
+  --correction 1350:304,1103,0
+  --correction 1620:146,1196,1
+  --correction 1620:570,562,1
+  --correction 1620:614,1024,1
+  --correction 1620:351,1038,1
+  --correction 1620:716,712,0
+  --correction 1620:712,411,0
+  --correction 1620:141,630,0
+  --correction 1620:369,141,0
+  --correction 1890:27,843,1
+  --correction 1890:353,405,1
+  --correction 1890:222,571,1
+  --correction 1890:417,693,1
+  --correction 1890:205,857,1
+  --correction 1890:313,1036,1
+  --correction 1890:587,1137,1
+  --correction 1890:642,1009,1
+  --correction 1890:625,723,1
+  --correction 1890:512,589,1
+  --correction 1890:424,471,1
+  --correction 1890:474,364,1
+  --correction 1890:694,492,0
+  --correction 1890:634,272,0
+  --correction 1890:111,190,0
+  --correction 1890:91,1169,0
+  --correction 2160:97,869,1
+  --correction 2160:141,918,1
+  --correction 2160:223,960,1
+  --correction 2160:421,1079,1
+  --correction 2160:589,956,1
+  --correction 2160:424,779,1
+  --correction 2160:598,659,1
+  --correction 2160:662,737,0
+  --correction 2160:662,556,0
+  --correction 2160:252,620,0
+  --correction 2160:535,158,0
+  --correction 2430:649,606,1
+  --correction 2430:106,94,1
+  --correction 2430:205,310,1
+  --correction 2430:357,562,1
+  --correction 2430:167,717,1
+  --correction 2430:325,916,1
+  --correction 2430:112,1141,1
+  --correction 2430:468,1173,0
+  --correction 2430:630,1140,0
+  --correction 2430:700,781,0
+  --correction 2430:704,495,0
+  --correction 2430:520,269,0
+  --correction 2700:124,477,1
+  --correction 2700:260,521,1
+  --correction 2700:118,591,1
+  --correction 2700:95,644,1
+  --correction 2700:240,720,1
+  --correction 2700:313,840,1
+  --correction 2700:477,655,1
+  --correction 2700:713,668,1
+  --correction 2700:506,760,1
+  --correction 2700:668,766,0
+  --correction 2700:671,559,0
+  --correction 2700:590,965,0
+  --correction 2700:283,232,0
+  --correction 2970:321,188,1
+  --correction 2970:327,465,1
+  --correction 2970:229,605,1
+  --correction 2970:438,828,1
+  --correction 2970:156,947,1
+  --correction 2970:82,1159,1
+  --correction 2970:669,722,0
+  --correction 2970:634,960,0
+  --correction 2970:691,486,0
+  --correction 2970:662,636,1
+  --correction 2970:605,276,0
+  --correction 3240:458,849,1
+  --correction 3240:464,720,1
+  --correction 3240:506,570,1
+  --correction 3240:642,518,1
+  --correction 3240:576,191,1
+  --correction 3240:517,284,1
+  --correction 3240:674,290,0
+  --correction 3240:703,787,0
+  --correction 3240:499,1159,0
+  --correction 3240:260,418,0
+  --correction 3510:410,624,1
+  --correction 3510:181,396,1
+  --correction 3510:133,536,1
+  --correction 3510:281,646,1
+  --correction 3510:91,776,1
+  --correction 3510:68,1013,1
+  --correction 3510:258,1105,0
+  --correction 3510:522,1082,0
+  --correction 3510:624,699,0
+  --correction 3510:621,375,0
+  --correction 3510:369,224,0
+  --correction 3780:290,595,1
+  --correction 3780:191,421,1
+  --correction 3780:369,398,1
+  --correction 3780:471,334,1
+  --correction 3780:372,240,1
+  --correction 3780:471,132,1
+  --correction 3780:633,418,1
+  --correction 3780:581,457,1
+  --correction 3780:631,176,0
+  --correction 3780:674,735,0
+  --correction 3780:452,950,0
+  --correction 3780:136,159,0
+  --correction 4050:123,446,1
+  --correction 4050:435,719,1
+  --correction 4050:188,635,1
+  --correction 4050:273,921,1
+  --correction 4050:112,906,1
+  --correction 4050:152,1202,1
+  --correction 4050:575,1086,0
+  --correction 4050:691,740,0
+  --correction 4050:680,577,0
+  --correction 4050:340,474,0
+  --correction 4050:152,202,0
+  --correction 4320:217,588,1
+  --correction 4320:442,530,1
+  --correction 4320:505,253,1
+  --correction 4320:659,381,1
+  --correction 4320:557,442,1
+  --correction 4320:662,711,0
+  --correction 4320:462,881,0
+  --correction 4320:105,220,0
+  --correction 4590:351,541,1
+  --correction 4590:126,366,1
+  --correction 4590:249,606,1
+  --correction 4590:79,712,1
+  --correction 4590:301,1077,0
+  --correction 4590:432,316,0
+  --correction 4590:707,533,0
+  --correction 4590:684,750,0
+  --correction 4860:458,457,1
+  --correction 4860:611,504,1
+  --correction 4860:546,361,1
+  --correction 4860:642,246,1
+  --correction 4860:681,392,1
+  --correction 4860:662,76,0
+  --correction 4860:663,716,0
+  --correction 4860:418,950,0
+  --correction 4860:153,220,0
+  --correction 5130:461,650,1
+  --correction 5130:65,117,1
+  --correction 5130:136,398,1
+  --correction 5130:266,589,1
+  --correction 5130:135,785,1
+  --correction 5130:65,1065,1
+  --correction 5130:360,1153,0
+  --correction 5130:645,725,0
+  --correction 5130:703,536,0
+  --correction 5130:331,284,0
+  --correction 5400:196,491,1
+  --correction 5400:444,250,1
+  --correction 5400:528,328,1
+  --correction 5400:344,453,1
+  --correction 5400:662,364,0
+  --correction 5400:648,776,0
+  --correction 5400:298,1010,0
+  --correction 5400:120,266,0
+  --correction 5670:124,466,1
+  --correction 5670:328,658,1
+  --correction 5670:117,656,1
+  --correction 5670:354,807,1
+  --correction 5670:50,962,1
+  --correction 5670:252,1041,1
+  --correction 5670:155,1158,1
+  --correction 5670:520,1178,0
+  --correction 5670:684,732,0
+  --correction 5670:700,567,0
+  --correction 5670:340,445,0
+  --correction 5670:39,152,0
+  --correction 5940:63,640,1
+  --correction 5940:278,407,1
+  --correction 5940:301,573,1
+  --correction 5940:412,443,1
+  --correction 5940:525,516,1
+  --correction 5940:683,559,0
+  --correction 5940:665,708,0
+  --correction 5940:493,912,0
+  --correction 5940:141,224,0
+  --correction 5940:593,136,0
+  --correction 6210:375,744,1
+  --correction 6210:74,585,1
+  --correction 6210:272,825,1
+  --correction 6210:101,995,1
+  --correction 6210:420,1150,0
+  --correction 6210:569,1207,0
+  --correction 6210:639,747,0
+  --correction 6210:671,553,0
+  --correction 6210:199,326,0
+  --correction 6480:89,100,1
+  --correction 6480:321,302,1
+  --correction 6480:53,337,1
+  --correction 6480:213,449,1
+  --correction 6480:103,579,1
+  --correction 6480:281,883,0
+  --correction 6480:637,722,0
+  --correction 6480:678,516,0
+  --correction 6480:322,124,0
+  --correction 6750:91,1232,1
+  --correction 6750:149,950,0
+  --correction 6750:634,592,0
+  --correction 6750:631,773,0
+  --correction 6750:143,411,0
+  --correction 6750:414,136,0
+  --correction 7020:380,512,1
+  --correction 7020:76,676,1
+  --correction 7020:322,787,1
+  --correction 7020:167,918,1
+  --correction 7020:146,1187,1
+  --correction 7020:628,1173,0
+  --correction 7020:653,740,0
+  --correction 7020:669,548,0
+  --correction 7020:246,421,0
+  --correction 7560:242,878,1
+  --correction 7560:441,483,1
+  --correction 7560:446,700,1
+  --correction 7560:572,936,1
+  --correction 7560:709,728,0
+  --correction 7560:716,474,0
+  --correction 7560:616,173,1
+  --correction 7560:389,203,1
+  --correction 7560:165,191,0
+  --correction 7560:168,1096,0
+  --correction 7830:36,690,1
+  --correction 7830:368,563,1
+  --correction 7830:312,845,1
+  --correction 7830:283,1067,1
+  --correction 7830:538,1146,0
+  --correction 7830:703,750,0
+  --correction 7830:674,506,0
+  --correction 7830:193,335,0
+  --correction 7830:369,82,0
+  --correction 8100:203,823,1
+  --correction 8100:342,529,1
+  --correction 8100:433,678,1
+  --correction 8100:333,837,1
+  --correction 8100:631,896,1
+  --correction 8100:576,665,1
+  --correction 8100:491,413,1
+  --correction 8100:385,170,1
+  --correction 8100:598,159,1
+  --correction 8100:703,498,0
+  --correction 8100:715,814,0
+  --correction 8100:74,345,0
+  --correction 8100:264,1053,0
+  --correction 8370:76,708,1
+  --correction 8370:350,521,1
+  --correction 8370:353,741,1
+  --correction 8370:193,816,1
+  --correction 8370:310,963,1
+  --correction 8370:108,1103,1
+  --correction 8370:286,1213,1
+  --correction 8370:581,1138,0
+  --correction 8370:704,784,0
+  --correction 8370:662,503,0
+  --correction 8370:152,472,0
+  --correction 8370:455,120,0
+  --correction 8640:170,852,1
+  --correction 8640:328,472,1
+  --correction 8640:398,687,1
+  --correction 8640:446,854,1
+  --correction 8640:613,916,1
+  --correction 8640:540,693,1
+  --correction 8640:441,411,1
+  --correction 8640:389,200,1
+  --correction 8640:563,232,1
+  --correction 8640:692,477,0
+  --correction 8640:704,766,0
+  --correction 8640:659,684,1
+  --correction 8640:91,527,0
+  --correction 8640:261,1156,0
+  --correction 8910:66,767,1
+  --correction 8910:397,548,1
+  --correction 8910:406,837,1
+  --correction 8910:161,1021,1
+  --correction 8910:514,1140,1
+  --correction 8910:712,740,0
+  --correction 8910:242,466,0
+  --correction 8910:400,127,0
+  --correction 9180:129,864,1
+  --correction 9180:347,608,1
+  --correction 9180:477,775,1
+  --correction 9180:333,889,1
+  --correction 9180:662,1079,1
+  --correction 9180:549,646,1
+  --correction 9180:499,436,1
+  --correction 9180:462,270,1
+  --correction 9180:601,276,1
+  --correction 9180:706,486,0
+  --correction 9180:718,790,0
+  --correction 9180:175,226,0
+  --correction 9180:115,1024,0
+  --correction 9450:25,483,1
+  --correction 9450:111,760,1
+  --correction 9450:257,828,1
+  --correction 9450:350,521,1
+  --correction 9450:663,734,0
+  --correction 9450:555,907,0
+  --correction 9450:281,234,0
+  --correction 9450:637,224,0
+
+)
+
+if [ "$CORRECTION" = false ]; then
+  # Full initial run: use all planned frame-specific prompts.
+  # Do NOT use --only-correction-chunks here.
+  python "$SCRIPT" \
+    "${COMMON_ARGS[@]}" \
+    "${PLANNED_PROMPTS[@]}" \
+    --overwrite
+else
+  # Correction pass: only rerun chunks containing these correction frames.
+  python "$SCRIPT" \
+    "${COMMON_ARGS[@]}" \
+    --correction 879:40,439,1 \
+    --correction 879:96,265,0 \
+    --correction 879:435,266,0 \
+    --correction 879:425,377,0 \
+    --correction 879:385,103,0 \
+    --correction 879:325,545,0 \
+    --correction 1170:312,353,1 \
+    --correction 1170:338,249,1 \
+    --correction 1170:318,300,1 \
+    --correction 1170:425,260,0 \
+    --correction 1170:419,361,0 \
+    --correction 1170:205,554,0 \
+    --correction 1170:193,128,0 \
+    --correction 1170:447,72,0 \
+    --correction 1520:145,295,1 \
+    --correction 1520:364,289,1 \
+    --correction 1520:97,208,1 \
+    --correction 1520:365,119,1 \
+    --correction 1520:64,80,0 \ 
+    --correction 1520:450,59,0 \
+    --correction 1520:73,543,0 \
+    --correction 1520:455,394,0 \
+    --correction 1520:466,228,0 \
+    --only-correction-chunks
+fi

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VIDEO_PATH="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_tristan_300eps/videos/observation.images.front/chunk-000/file-007.mp4"
-LOG_FILE="out-300ep-007.log"
-PREFETCH_FRAMES_DIR="point_frames_300ep_007"
+VIDEO_PATH=/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_improved_general/videos/observation.images.front/chunk-000/file-011.mp4
+LOG_FILE="out_full_fold_improved_general_011.log"
+PREFETCH_FRAMES_DIR="point_frames_full_fold_improved_general_011"
 CHUNK_SIZE=270
 N_CHUNKS=100
 
@@ -21,6 +21,10 @@ if [ "$PREFETCH" = true ]; then
 
     for i in $(seq 0 $((N_CHUNKS - 1))); do
         frame=$((i * CHUNK_SIZE))
+        # NOTE: first frame often doesn't have the cloth, so skip to 10 and pray
+        if [ "$frame" -eq 0 ]; then
+            frame=25
+        fi
         out="$PREFETCH_FRAMES_DIR/frame_${frame}.png"
 
         echo "Extracting exact frame $frame -> $out"

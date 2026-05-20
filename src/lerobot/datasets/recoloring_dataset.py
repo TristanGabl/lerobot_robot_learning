@@ -83,24 +83,24 @@ class RecoloringLeRobotDataset(Dataset):
         self.camera_keys = self.meta.camera_keys if self.meta else []
 
     
-    def _resolve_mask_path(self, cam: str, global_idx: int) -> Path:
+    def _resolve_mask_path(self, cam: str, global_idx: int) -> Path | None:
         entries = self.mask_manifest.get(cam)
         if not entries:
-            raise KeyError(f"No mask manifest entries for camera {cam}")
+            return None
 
-        starts = self._mask_starts[cam]
+        starts = self._mask_starts.get(cam, [])
+        if not starts:
+            return None
+
         pos = bisect.bisect_right(starts, global_idx) - 1
 
         if pos < 0:
-            raise IndexError(f"No mask shard for cam={cam}, global_idx={global_idx}")
+            return None
 
         entry = entries[pos]
 
         if not (entry["global_start"] <= global_idx < entry["global_end_exclusive"]):
-            raise IndexError(
-                f"No mask shard for cam={cam}, global_idx={global_idx}. "
-                f"Closest entry is [{entry['global_start']}, {entry['global_end_exclusive']})"
-            )
+            return None
 
         local_idx = global_idx - int(entry["global_start"])
         return self.dataset_root / entry["mask_dir"] / f"{local_idx:06d}.png"
@@ -165,7 +165,7 @@ class RecoloringLeRobotDataset(Dataset):
                 mask_path = self._resolve_mask_path(cam, global_idx)
                 
                 # Load & Resize Mask
-                if mask_path.exists():
+                if mask_path is not None and mask_path.exists():
                     mask_img = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
                     if mask_img is not None:
                         if mask_img.shape[:2] != (out_H, out_W):
