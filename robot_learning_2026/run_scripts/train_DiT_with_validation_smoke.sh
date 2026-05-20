@@ -1,0 +1,44 @@
+# Smoke-test run: DiT policy with batch_size=1 and validation every 10 steps.
+# Based on train_DiT.sh; uses the train_with_validation.py wrapper.
+
+uv run python robot_learning_2026/scripts/train_with_validation.py \
+  --dataset.repo_id="DerBoroter/full_fold_improved" \
+  --val_dataset.repo_id="DerBoroter/full_fold_improved" \
+  --val_freq=100 \
+  --val_batches=20 \
+  --policy.pretrained_path="DerBoroter/full_fold_improved_dit_diffusion" \
+  --policy.repo_id="DerBoroter/ben_full_fold_improved_dit_diffusion" \
+  --output_dir=outputs/train/full_fold_tristan_smoke_$(date +%Y%m%d_%H%M%S) \
+  --policy.type="multi_task_dit" \
+  --policy.horizon=64 \
+  --policy.n_action_steps=32 \
+  --policy.hidden_dim=768 \
+  --policy.num_heads=12 \
+  --policy.num_layers=7 \
+  --policy.timestep_embed_dim=384 \
+  --policy.drop_n_last_frames=31 \
+  --policy.objective=diffusion \
+  --policy.noise_scheduler_type=DDIM \
+  --policy.optimizer_lr=1e-5 \
+  --policy.scheduler_warmup_steps=500 \
+  --policy.optimizer_weight_decay=1e-6 \
+  --policy.image_resize_shape=[320,240] \
+  --policy.image_crop_shape=null \
+  --policy.vision_num_keypoints=64 \
+  --policy.use_amp=true \
+  --batch_size=4 \
+  --steps=50000 \
+  --save_freq=10000 \
+  --eval_freq=5000 \
+  --job_name=DiT_grab_smoke \
+  --policy.device=mps \
+  --wandb.project=derRoboter \
+  --wandb.entity=derRoboter \
+  --wandb.enable=true \
+  --policy.push_to_hub=false \
+  --policy.private=true \
+  --num_workers=2 \
+  --dataset.image_transforms.enable=true \
+  --dataset.image_transforms.max_num_transforms=1 \
+  --dataset.image_transforms.random_order=false \
+  '--dataset.image_transforms.tfs={"identity":{"type":"Identity","weight":0.8,"kwargs":{}},"color_jitter":{"type":"ColorJitter","weight":0.2,"kwargs":{"brightness":[0.5,1.5]}}}' \
