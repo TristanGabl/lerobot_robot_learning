@@ -31,6 +31,7 @@ class DatasetConfig:
     # --- Added to support mask recoloring wrapper ---
     masks_dir: str | None = None
     recolor_prob: float = 1.0
+    recolor_white_prob: float = 0.0
     recolor_hue_range: list[int] | None = None
     recolor_sat_range: list[int] | None = None
     recolor_val_range: list[float] | None = None

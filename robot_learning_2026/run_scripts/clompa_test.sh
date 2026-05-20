@@ -29,6 +29,7 @@ lerobot-train \
   --dataset.image_transforms.tfs='{"identity":{"type":"Identity","weight":0.0,"kwargs":{}},"color_jitter":{"type":"ColorJitter","weight":1.0,"kwargs":{"brightness":[0.7, 1.1],"contrast":[0.5,1.4],"saturation":[0.5,1.4],"hue":[-0.03,0.03]}}}' \
   --dataset.masks_dir="/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_improved_general/masks" \
   --dataset.recolor_prob=1.0 \
+  --dataset.recolor_white_prob=1.0 \
   --dataset.recolor_hue_range="[0,120]" \
   --dataset.recolor_sat_range="[150,220]" \
   --dataset.recolor_val_range="[0.9,1.1]"  \

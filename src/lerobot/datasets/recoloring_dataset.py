@@ -50,6 +50,7 @@ class RecoloringLeRobotDataset(Dataset):
                  target_hue_range=None, 
                  target_sat_range=None, 
                  value_factor_range=None, 
+                 white_prob=0.0,
                  debug_dir=None):
         
         self.dataset = dataset
@@ -66,6 +67,7 @@ class RecoloringLeRobotDataset(Dataset):
             self._mask_starts[cam] = [int(e["global_start"]) for e in entries]
 
         self.recolor_prob = recolor_prob
+        self.white_prob = white_prob
         self.target_hue_range = target_hue_range or [0, 179]
         self.target_sat_range = target_sat_range or [100, 255]
         self.value_factor_range = value_factor_range or [0.8, 1.2]
@@ -106,7 +108,7 @@ class RecoloringLeRobotDataset(Dataset):
         return self.dataset_root / entry["mask_dir"] / f"{local_idx:06d}.png"
     
     def __getattr__(self, name: str):
-        if name in ['dataset', 'masks_dir', 'recolor_prob', 'target_hue_range', 'target_sat_range', 'value_factor_range', 'debug_dir', 'image_transforms', 'meta', 'camera_keys']:
+        if name in ['dataset', 'masks_dir', 'recolor_prob', 'white_prob', 'target_hue_range', 'target_sat_range', 'value_factor_range', 'debug_dir', 'image_transforms', 'meta', 'camera_keys']:
             raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
         return getattr(self.dataset, name)
 
@@ -155,8 +157,14 @@ class RecoloringLeRobotDataset(Dataset):
             
             # Roll random properties identically for the entire temporal stack T
             sampled_hue = int(torch.randint(self.target_hue_range[0], self.target_hue_range[1] + 1, (1,)).item())
-            sampled_sat = int(torch.randint(self.target_sat_range[0], self.target_sat_range[1] + 1, (1,)).item())
             sampled_val = (torch.rand(1) * (self.value_factor_range[1] - self.value_factor_range[0]) + self.value_factor_range[0]).item()
+            
+            if torch.rand(1).item() < self.white_prob:
+                sampled_sat = 0
+                # Optionally boost value to make it more clearly white instead of just grey
+                sampled_val = max(1.0, sampled_val) * 1.5
+            else:
+                sampled_sat = int(torch.randint(self.target_sat_range[0], self.target_sat_range[1] + 1, (1,)).item())
             
             for t_step, frame_idx in enumerate(frame_indices_for_T):
                 global_idx = int(clamped_abs_indices[t_step])

@@ -136,6 +136,7 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | MultiLeRobotDatas
             dataset, 
             masks_dir=cfg.dataset.masks_dir,
             recolor_prob=getattr(cfg.dataset, "recolor_prob", 1.0),
+            white_prob=getattr(cfg.dataset, "recolor_white_prob", 0.0),
             target_hue_range=getattr(cfg.dataset, "recolor_hue_range", None),
             target_sat_range=getattr(cfg.dataset, "recolor_sat_range", None),
             value_factor_range=getattr(cfg.dataset, "recolor_val_range", None),
