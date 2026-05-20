@@ -25,4 +25,5 @@ uv run python robot_learning_2026/scripts/train_with_validation.py \
   --policy.n_action_steps=24 \
   --policy.image_crop_shape=[224,224] \
   --policy.num_layers=4 \
-  --policy.hidden_dim=384
+  --policy.hidden_dim=384 \
+  --policy.private=true 

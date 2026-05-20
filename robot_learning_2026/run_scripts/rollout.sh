@@ -9,7 +9,7 @@ else
   sudo chmod 666 /dev/ttyACM0
   PORT='/dev/ttyACM0'
   DEVICE=cuda
-  CAM=2
+  CAM=0
 fi
 
 lerobot-rollout \
@@ -18,8 +18,7 @@ lerobot-rollout \
   --robot.cameras="{ front: {type: opencv, index_or_path: "$CAM", width: 480, height: 640, fps: 30, rotation: -90}}" \
   --display_data=false \
   --task="fold" \
-  --policy.path="DerBoroter/diffusion_fold_2cm_150ep" \
+  --policy.path="DerBoroter/full_fold_improved_dit_diffusion" \
   --policy.noise_scheduler_type="DDIM" \
-  --policy.resize_shape=[320,240] \
   --device="$DEVICE" \
   --return_to_initial_position=true
