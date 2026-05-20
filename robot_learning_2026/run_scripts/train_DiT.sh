@@ -1,8 +1,8 @@
 # Train a DiT policy on the collected dataset
 
 lerobot-train \
-  --dataset.repo_id="DerBoroter/full_fold_tristan_300eps" \
-  --policy.repo_id="DerBoroter/full_fold_tristan_300eps_dit" \
+  --dataset.repo_id="DerBoroter/full_fold_improved" \
+  --policy.repo_id="DerBoroter/full_fold_improved_dit_diffusion" \
   --output_dir=outputs/train/full_fold_tristan_300eps_$(date +%Y%m%d_%H%M%S) \
   --policy.type="multi_task_dit" \
   --policy.horizon=64 \
@@ -12,19 +12,17 @@ lerobot-train \
   --policy.num_layers=7 \
   --policy.timestep_embed_dim=384 \
   --policy.drop_n_last_frames=31 \
-  --policy.objective=flow_matching \
-  --policy.num_integration_steps=10 \
-  --policy.timestep_sampling_strategy=beta \
-  --policy.image_resize_shape=[341,256] \
-  --policy.image_crop_shape=[256,256] \
-  --policy.vision_num_keypoints=64 \
-  --policy.use_separate_rgb_encoder_per_camera=true \
+  --policy.objective=diffusion \
+  --policy.noise_scheduler_type=DDIM \
   --policy.optimizer_lr=1e-4 \
   --policy.scheduler_warmup_steps=500 \
   --policy.optimizer_weight_decay=1e-6 \
+  --policy.image_resize_shape=[320,240] \
+  --policy.image_crop_shape=null \
+  --policy.vision_num_keypoints=64 \
   --policy.use_amp=true \
   --batch_size=64 \
-  --steps=100000 \
+  --steps=50000 \
   --save_freq=10000 \
   --eval_freq=5000 \
   --job_name=DiT_grab \
@@ -34,8 +32,8 @@ lerobot-train \
   --wandb.enable=true \
   --policy.push_to_hub=true \
   --policy.private=true \
-  --num_workers=8 \
+  --num_workers=16 \
   --dataset.image_transforms.enable=true \
   --dataset.image_transforms.max_num_transforms=1 \
   --dataset.image_transforms.random_order=false \
-  '--dataset.image_transforms.tfs={"identity":{"type":"Identity","weight":0.8,"kwargs":{}},"color_jitter":{"type":"ColorJitter","weight":0.2,"kwargs":{"brightness":[0.5,1.5],"contrast":[0.8,1.2],"saturation":[0.8,1.2],"hue":[-0.03,0.03]}}}' \
+  '--dataset.image_transforms.tfs={"identity":{"type":"Identity","weight":0.8,"kwargs":{}},"color_jitter":{"type":"ColorJitter","weight":0.2,"kwargs":{"brightness":[0.5,1.5]}}}' \
