@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VIDEO_PATH=/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_improved_general/videos/observation.images.front/chunk-000/file-011.mp4
-LOG_FILE="out_full_fold_improved_general_011.log"
-PREFETCH_FRAMES_DIR="point_frames_full_fold_improved_general_011"
+VIDEO_PATH=/home/clompa/spaces/robot_learning/lerobot_robot_learning/robot_learning_2026/full_fold_improved_general_plus_addon/videos/observation.images.front/chunk-000/file-013.mp4
+LOG_FILE="out_full_fold_improved_general_addon_013.log"
+PREFETCH_FRAMES_DIR="point_frames_full_fold_improved_general_addon_013"
 CHUNK_SIZE=270
 N_CHUNKS=100
 
@@ -23,7 +23,7 @@ if [ "$PREFETCH" = true ]; then
         frame=$((i * CHUNK_SIZE))
         # NOTE: first frame often doesn't have the cloth, so skip to 10 and pray
         if [ "$frame" -eq 0 ]; then
-            frame=25
+            frame=50
         fi
         out="$PREFETCH_FRAMES_DIR/frame_${frame}.png"
 
