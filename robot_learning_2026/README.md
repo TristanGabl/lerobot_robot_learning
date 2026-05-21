@@ -117,12 +117,6 @@ python -m lerobot.async_inference.robot_client \
     --debug_visualize_queue_size=True
 ```
 
-## 5. Develop custom policy
-Develop custo policy from scratch (for future reference, now we can just modify the basic diffusion directly)
-
-https://huggingface.co/docs/lerobot/en/bring_your_own_policies 
-
-
 # Datasets & Models
 
 https://huggingface.co/DerBoroter
