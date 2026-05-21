@@ -1,9 +1,10 @@
 # Train a DiT policy on the collected dataset
 
 lerobot-train \
-  --dataset.repo_id="DerBoroter/full_fold_improved" \
-  --policy.repo_id="DerBoroter/full_fold_improved_dit_diffusion" \
-  --output_dir=outputs/train/full_fold_tristan_300eps_$(date +%Y%m%d_%H%M%S) \
+  --dataset.repo_id="datasets/full_fold_improved" \
+  --dataset.root="datasets/full_fold_improved" \
+  --policy.repo_id="full_fold_improved" \
+  --output_dir=outputs/train/full_fold_improved_$(date +%Y%m%d_%H%M%S) \
   --policy.type="multi_task_dit" \
   --policy.horizon=64 \
   --policy.n_action_steps=32 \
