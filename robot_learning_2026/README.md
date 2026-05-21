@@ -8,11 +8,17 @@ sudo chmod -R +xwr  ./robot_learning_2026/run_scripts/
 
 ## 1. Rollout
 
-The scripts used for the demo rollout were
- ```
- ./robot_learning_2026/run_scripts/run_eval.sh
- ./robot_learning_2026/run_scripts/run_eval_general.sh
-  ```
+The scripts used for the demo rollout were:
+* for the first three tasks:
+
+```
+./robot_learning_2026/run_scripts/run_eval.sh
+```
+* for the bonus: 
+
+```
+./robot_learning_2026/run_scripts/run_eval_general.sh
+```
 
 ## 2. Hardware Setup & Calibration
 
