@@ -1,40 +1,18 @@
-# Robot Learning - Folding
+# Robot Learning - Folding Group 26
 
-
-## 1. Installation
-
-run all in one
+## 0. Installation
 ```bash
 sudo chmod -R +xwr  ./robot_learning_2026/run_scripts/
 ./robot_learning_2026/run_scripts/install.sh
 ```
-Or
 
-Create a virtual environment and install dependencies:
+## 1. Rollout
 
-```bash
-# all in one (inludeds dependencies for Asynchronous Inference)
-brew install ffmpeg   # macOS (one-time system dep)
-uv sync --locked --extra feetech --extra diffusion --extra training -extra multi_task_dit --extra async --extra test --extra dev
-```
-
-or split up
-```bash
-uv python install 3.12
-uv venv --python 3.12
-
-# Activate environment
-source .venv/bin/activate  # Linux/macOS
-# Windows: .venv\Scripts\activate
-
-# System Dependencies
-sudo apt install ffmpeg    # Ubuntu/Debian
-# brew install ffmpeg      # macOS
-
-# Install LeRobot and some additional features (you will probably have to install more)
-uv pip install -e .
-uv pip install 'lerobot[feetech,diffusion,dataset,training, viz, multi_task_dit]'
-```
+The scripts used for the demo rollout were
+ ```
+ ./robot_learning_2026/run_scripts/run_eval.sh
+ ./robot_learning_2026/run_scripts/run_eval_general.sh
+  ```
 
 ## 2. Hardware Setup & Calibration
 
@@ -102,17 +80,11 @@ To verify the recorded behaviour, you can replay the trajectories:
 replay.sh
 ```
 
-## 4. Training and Inference
+## 4. Training
 (Change the training parameters in the following commands)
-
-compute instance **stop it again when done, limited credits**:
-https://brev.nvidia.com/org/org-3Cfc5RioM40O3xB9vb9LYO3QYfd/billing?openAddCredits=true
-
-*Compute is limited and charged by uptime, depending on your batch and model size you can train multiple policies in parallel. Smaller batchsize (e.g. 8) counterinutitively trains faster than larger here, at least for diffusion*
-
 ```bash
-train_diff.sh #train diffusion policy, ~1h for 50k steps (20M params)
-train_DiT.sh # train DiT policy, hyperparams not tuned
+train_diff_new.sh #train diffusion policy, tuned config, ~1h for 50k steps (20M params)
+train_DiT.sh # train DiT policy, tuned config
 train_act.sh # train action policy (simple, small, fast, not allowed)
 ```
 * checkpoints are pushed to:
@@ -122,20 +94,9 @@ https://wandb.ai/derRoboter/derRoboter
 
 *Optional: Add `--dataset.episodes="[0,1,2]"` if you only want to train on a specific subset of recordings.*
 
->*have not trained this:*
-We can use directly DiT for training, which supports both diffusion and flow matching. For example we can train diffusion with:
-
 NOTE: doublecheck + checkout documentation
 https://huggingface.co/docs/lerobot/multi_task_dit
   
-
-### Inference
-Once trained, run the model on the robot. (**Warning:** CPU inference is very unstable and slow, use GPU).
-> *automatically downloads selected policy from hf*
-```bash
-infer_act.sh #action policy inference
-infer_diff.sh #diffusion policy inference
-```
 
 ### Async Inference
 
@@ -164,8 +125,9 @@ https://huggingface.co/docs/lerobot/en/bring_your_own_policies
 
 # Datasets & Models
 
-Updated best datasets and models to use
+https://huggingface.co/DerBoroter
 
+Updated best datasets and models to use
 
 ## Datasets
 

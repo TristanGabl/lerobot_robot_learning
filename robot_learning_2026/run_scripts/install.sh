@@ -16,14 +16,5 @@ uv pip install torchmetrics
 uv pip install opencv-python
 git submodule update --init --recursive
 
-
-# Copy pre-existing configurations
-rm -r ~/.cache/huggingface/lerobot/calibration/robots/so_follower/
-rm -r ~/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/
-mkdir ~/.cache/huggingface/lerobot/calibration/robots/so_follower/
-mkdir ~/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/
-cp robot_learning_2026/my_awesome_follower_arm.json ~/.cache/huggingface/lerobot/calibration/robots/so_follower/
-cp robot_learning_2026/my_awesome_leader_arm.json ~/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/
-
 # make scripts executable
 sudo chmod -R +xwr  ./robot_learning_2026/run_scripts/
