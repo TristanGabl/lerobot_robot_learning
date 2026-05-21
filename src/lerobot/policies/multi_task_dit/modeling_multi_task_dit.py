@@ -273,7 +273,7 @@ class DINOv3VisionEncoder(nn.Module): # TODO Tristan: change num_keypoints
         return self.pool(feat).flatten(start_dim=1).unsqueeze(-1).unsqueeze(-1)  # (B, feature_dim, 1, 1)
 
     def get_output_shape(self) -> tuple:
-        return (self.feature_dim, 1, 1)
+        return (self.feature_dim, 1, 1) # due to spatial softmax (1,1) at the end
 
 class CLIPTextEncoder(nn.Module):
     """CLIP text encoder with frozen weights and a learnable projection layer.

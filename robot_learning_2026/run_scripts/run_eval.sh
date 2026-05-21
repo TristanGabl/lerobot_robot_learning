@@ -18,7 +18,7 @@ lerobot-rollout \
   --robot.cameras="{ front: {type: opencv, index_or_path: "$CAM", width: 480, height: 640, fps: 30, rotation: -90}}" \
   --display_data=false \
   --task="fold" \
-  --policy.path="DerBoroter/full_fold_improved_dit_diffusion_v2" \
+  --policy.path="checkpoints/full_fold_improved_dit_diffusion_v2" \
   --policy.noise_scheduler_type="DDIM" \
   --device="$DEVICE" \
   --return_to_initial_position=true
