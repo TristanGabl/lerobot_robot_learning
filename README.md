@@ -67,7 +67,7 @@ lerobot-find-cameras opencv
 
 Ensure the arms and cameras sync correctly (press `Ctrl+C` to exit):
 ```bash
-teleoperate.sh
+./robot_learning_2026/run_scripts/teleoperate.sh
 ```
 
 ### Record Demonstrations
@@ -75,7 +75,7 @@ teleoperate.sh
 > **Note (Linux + Wayland):** The CLI for recording on Wayland is not well supported, you can find a script in `scripts/` that bypasses the CLI with a simple GUI. In the follwing commands simply substitute `lerobot-record` with `python robot_learning_2026/scripts/record_gui.py` to use it. If that doesnt work either, install X11 and use the original script!
 
 ```bash
-record.sh
+./robot_learning_2026/run_scripts/record.sh
 ```
 
 This saves trajectories in `.parquet` format with a single `.mp4` video containing all the recorded examples to https://huggingface.co/DerBoroter
@@ -83,15 +83,15 @@ This saves trajectories in `.parquet` format with a single `.mp4` video containi
 ### Replay
 To verify the recorded behaviour, you can replay the trajectories:
 ```bash
-replay.sh
+./robot_learning_2026/run_scripts/replay.sh
 ```
 
 ## 4. Training
 (Change the training parameters in the following commands)
 ```bash
-train_diff_new.sh #train diffusion policy, tuned config, ~1h for 50k steps (20M params)
-train_DiT.sh # train DiT policy, tuned config
-train_act.sh # train action policy (simple, small, fast, not allowed)
+./robot_learning_2026/run_scripts/train_diff_new.sh #train diffusion policy, tuned config, ~1h for 50k steps (20M params)
+./robot_learning_2026/run_scripts/train_DiT.sh # train DiT policy, tuned config
+./robot_learning_2026/run_scripts/train_act.sh # train action policy (simple, small, fast, not allowed)
 ```
 * checkpoints are pushed to:
 https://huggingface.co/DerBoroter
