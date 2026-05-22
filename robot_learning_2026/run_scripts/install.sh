@@ -1,7 +1,6 @@
 sudo apt update
 sudo apt install ffmpeg   
 curl -LsSf https://astral.sh/uv/install.sh | sh # install uv
-bash
 
 uv venv --python 3.12 #create virtual environment !!WITH PYTHON=3.12!!
 source .venv/bin/activate #activate virtual environment
