@@ -89,7 +89,7 @@ To verify the recorded behaviour, you can replay the trajectories:
 ## 4. Training
 (Change the training parameters in the following commands)
 ```bash
-./robot_learning_2026/run_scripts/train_diff_new.sh #train diffusion policy, tuned config, ~1h for 50k steps (20M params)
+./robot_learning_2026/run_scripts/train_diff_new.sh #train diffusion policy, tuned config
 ./robot_learning_2026/run_scripts/train_DiT.sh # train DiT policy, tuned config
 ./robot_learning_2026/run_scripts/train_act.sh # train action policy (simple, small, fast, not allowed)
 ```
@@ -103,25 +103,6 @@ https://wandb.ai/derRoboter/derRoboter
 NOTE: doublecheck + checkout documentation
 https://huggingface.co/docs/lerobot/multi_task_dit
   
-
-### Async Inference
-
-```bash
-python -m lerobot.async_inference.robot_client \
-    --server_address=100.80.255.111:8080 \
-    --robot.type=so101_follower \
-    --robot.port=/dev/tty.usbmodem5B141126191 \
-    --robot.id=my_awesome_follower_arm \
-    --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 480, height: 640, fps: 30, rotation: -90}}" \
-    --task="folding towel" \
-    --policy_type=diffusion \
-    --pretrained_name_or_path=outputs/train/diffusion_full/checkpoints/last/pretrained_model \
-    --policy_device=cuda \
-    --actions_per_chunk=50 \
-    --chunk_size_threshold=0.5 \
-    --aggregate_fn_name=weighted_average \
-    --debug_visualize_queue_size=True
-```
 
 # Datasets
 
