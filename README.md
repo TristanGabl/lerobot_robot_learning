@@ -1,4 +1,15 @@
-# Robot Learning - Folding Group 26
+# Robot Learning - Folding towel Group 26
+
+For the start of the project, we forked off the /lerobot repo as we ran many hyperparameter experiments, mainly concerning the given standard diffusion model as well as the multi_task_dit. Our first successes came with the standard diffusion policy, with the right parameters and a ResNet18 pretrained backbone as a training option. At the same time we started changing the policy code itself and added support for the dinov3 backbone. As using the ResNet18 backbone helped us immensely, we hoped for another significant performance boost, though the rollouts suggested that the backbone would not be a bottleneck. 
+
+The dataset was iterated on many times, involving different grabbing techniques that were less prone to variance when the robot performed it compared to teleoperation. As consistency was key, we had a single person doing all of the teleoperation recordings throughout the project.
+
+As the last week of the project approached, we decided to add more of our own code to the multi_task_dit, replacing the clip backbone with the dinov3, removing text encoding entirely and copying the Spatial Softmax to be between the backbone and the diffusion transformer part. After a few trainings with different hyperparameters, we could finally produce a better model than the CNN based diffusion policy while having just 1/5 of the parameters, allowing us to also do quick rollouts on a standard M1 Mac. With this, we could perform the base task with 95% success rate.
+
+For the general task, we used sam2 to add segmentation data of the towel to each frame of the recorded datasets, which allowed us to add a new data transformation to the lerobot repo, only changing the color of the towel. Together with a dataset featuring all kinds of offsets and rotations, and a 30% larger model, we could often perform the bonus task about 3/5 times. 
+
+
+
 
 ## 0. Installation
 ```bash
