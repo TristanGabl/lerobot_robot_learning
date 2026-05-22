@@ -17,6 +17,8 @@ def hsv_recolor_preserve_shading(
     alpha_blur: int = 9,
     mask_threshold: int = 127,
 ) -> np.ndarray:    
+    """ Recolor the masked region of the input BGR image to the target hue and saturation while preserving shading."""
+    
     mask = mask_u8 > mask_threshold
     hsv = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
     recolored_hsv = hsv.copy()
@@ -67,7 +69,7 @@ class RecoloringLeRobotDataset(Dataset):
             self._mask_starts[cam] = [int(e["global_start"]) for e in entries]
 
         self.recolor_prob = recolor_prob
-        self.white_prob = white_prob
+        self.white_prob = white_prob # NOTE: white is considered a special case to avoid needing hue/sat/value ranges wide enough to cover white range
         self.target_hue_range = target_hue_range or [0, 179]
         self.target_sat_range = target_sat_range or [100, 255]
         self.value_factor_range = value_factor_range or [0.8, 1.2]
@@ -76,7 +78,7 @@ class RecoloringLeRobotDataset(Dataset):
         if self.debug_dir:
             self.debug_dir.mkdir(parents=True, exist_ok=True)
         
-        # EXTRACT DATASET TRANSFORMS AND DISABLE THEM INTERNALLY
+        # EXTRACT DATASET TRANSFORMS AND DISABLE THEM INTERNALLY (-> we control order of operations)
         self.image_transforms = self.dataset.image_transforms
         self.dataset.set_image_transforms(None) # NOTE: we will apply these manually after recoloring to ensure correct order of operations
         
@@ -105,7 +107,7 @@ class RecoloringLeRobotDataset(Dataset):
             return None
 
         local_idx = global_idx - int(entry["global_start"])
-        return self.dataset_root / entry["mask_dir"] / f"{local_idx:06d}.png"
+        return self.dataset_root / entry["mask_dir"] / f"{local_idx:06d}.png" # NOTE: assumes mask filenames are 6 digit frame indices -> specific to our dataset
     
     def __getattr__(self, name: str):
         if name in ['dataset', 'masks_dir', 'recolor_prob', 'white_prob', 'target_hue_range', 'target_sat_range', 'value_factor_range', 'debug_dir', 'image_transforms', 'meta', 'camera_keys']:
@@ -146,7 +148,7 @@ class RecoloringLeRobotDataset(Dataset):
             clamped_abs_indices = [max(ep_start, min(ep_end - 1, abs_idx + d)) for d in deltas]
             frame_indices_for_T = [abs_i - ep_start for abs_i in clamped_abs_indices]
             
-            # Extract PyTorch Tensor (likely Float32 [0.0, 1.0])
+            # Extract pytorch tensor (likely float [0.0, 1.0])
             im_stack = item[cam] 
             is_temporal = (len(im_stack.shape) == 4)
             if not is_temporal:
@@ -172,7 +174,7 @@ class RecoloringLeRobotDataset(Dataset):
                 #mask_path = self.masks_dir /f"{global_idx:06d}.png"
                 mask_path = self._resolve_mask_path(cam, global_idx)
                 
-                # Load & Resize Mask
+                # Load and Resize Mask
                 if mask_path is not None and mask_path.exists():
                     mask_img = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
                     if mask_img is not None:
@@ -203,7 +205,7 @@ class RecoloringLeRobotDataset(Dataset):
                     value_factor=sampled_val
                 )
 
-                # Optionally debug save visually-verifiable samples
+                # Optionally debug save visually verifiable samples with low proability
                 if self.debug_dir and torch.rand(1).item() < 0.05:
                     safe_cam = cam.replace(".", "_").replace("/", "_")
 

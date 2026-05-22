@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
 
 """
-Visualization script for LeRobot dataset image augmentations.
-
-This script loads samples from a specified LeRobot dataset and applies various 
-visual augmentations (ColorJitter) to visualize the impact of photometric 
-transformations during training. It generates:
-1. Comparison between original and augmented images at the boundaries of the augmentation parameters.
-2. n_samples individual examples of random augmentations applied to the same image to mimic what happens during training.
-
-Labels are added to the bottom of images in the grids for easier comparison.
+Visualization script for visualising impact of dataset image augmentations from
+LeRobot standard image transformations such as ColorJitter.
+Used to tune boundaries for training.
 """
 
 from pathlib import Path

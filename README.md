@@ -6,7 +6,7 @@ The dataset was iterated on many times, involving different grabbing techniques 
 
 As the last week of the project approached, we decided to add more of our own code to the multi_task_dit, replacing the clip backbone with the dinov3, removing text encoding entirely and copying the Spatial Softmax to be between the backbone and the diffusion transformer part. After a few trainings with different hyperparameters, we could finally produce a better model than the CNN based diffusion policy while having just 1/5 of the parameters, allowing us to also do quick rollouts on a standard M1 Mac. With this, we could perform the base task with 95% success rate.
 
-For the general task, we used sam2 to add segmentation data of the towel to each frame of the recorded datasets, which allowed us to add a new data transformation to the lerobot repo, only changing the color of the towel. Together with a dataset featuring all kinds of offsets and rotations, and a 30% larger model, we could often perform the bonus task about 3/5 times. 
+For the general task, we used sam2 to add segmentation data of the towel to each frame of the recorded datasets (see `robot_learning_2026/sam2_tools/README.md` for details), which allowed us to add a new data transformation to the lerobot repo, only changing the color of the towel. Together with a dataset featuring all kinds of offsets and rotations, and a 30% larger model, we could often perform the bonus task about 3/5 times. 
 
 
 
@@ -100,7 +100,8 @@ To verify the recorded behaviour, you can replay the trajectories:
 ## 4. Training
 (Change the training parameters in the following commands)
 ```bash
-./robot_learning_2026/run_scripts/train_diff_new.sh #train diffusion policy, tuned config
+./robot_learning_2026/run_scripts/train_diff_new.sh # train diffusion policy, tuned config
+./robot_learning_2026/run_scripts/train_diff_new_recolour.sh # train diffusion policy with cloth recolouring
 ./robot_learning_2026/run_scripts/train_DiT.sh # train DiT policy, tuned config
 ./robot_learning_2026/run_scripts/train_act.sh # train action policy (simple, small, fast, not allowed)
 ```

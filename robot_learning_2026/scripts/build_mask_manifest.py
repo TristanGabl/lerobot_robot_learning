@@ -48,7 +48,8 @@ def main() -> None:
     for video_path in video_paths:
         n = ffprobe_frame_count(video_path)
         rel_video = video_path.relative_to(dataset_root)
-
+        
+        # Keep consistent with LeRobot dataset structure
         # videos/observation.images.front/chunk-000/file-000.mp4
         # masks/observation.images.front/chunk-000/file-000
         chunk_name = video_path.parent.name

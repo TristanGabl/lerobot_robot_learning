@@ -75,8 +75,7 @@ def link_or_copy_chunk_frames(
     chunk_frames_dir: Path,
 ) -> list[Path]:
     """
-    SAM2 expects a directory of sequentially named jpg/png frames.
-    We create a temporary chunk directory where local frame 0 maps to global chunk_start.
+    Create a temporary chunk directory where local frame 0 maps to global chunk_start.
     """
     if chunk_frames_dir.exists():
         shutil.rmtree(chunk_frames_dir)
@@ -99,9 +98,9 @@ def parse_correction(s: str) -> tuple[int, float, float, int]:
     Parse correction syntax:
       GLOBAL_FRAME:X,Y,LABEL
 
-    Examples:
-      430:315,280,1   positive cloth click
-      430:210,190,0   negative wrong-object/background click
+    Convention:
+      430:315,280,1 ->  positive cloth click
+      430:210,190,0 ->  negative wrong-object/background click
     """
     try:
         frame_str, rest = s.split(":", 1)
@@ -130,6 +129,7 @@ def group_corrections_by_chunk(
     corrections: list[tuple[int, float, float, int]],
     chunk_size: int,
 ) -> dict[int, list[tuple[int, float, float, int]]]:
+    # This
     grouped: dict[int, list[tuple[int, float, float, int]]] = defaultdict(list)
     for global_frame, x, y, label in corrections:
         chunk_start = (global_frame // chunk_size) * chunk_size
@@ -200,7 +200,7 @@ def main() -> None:
         "--chunk-size",
         type=int,
         default=150,
-        help="Frames per SAM2 chunk. 150 = 5 sec at 30 FPS.",
+        help="Frames per SAM2 chunk. 270 = 5 sec at 30 FPS.",
     )
 
     parser.add_argument(
@@ -214,14 +214,15 @@ def main() -> None:
         ),
     )
 
-    parser.add_argument(
+    # Not used: too imprecise
+    """ parser.add_argument(
         "--box",
         nargs=4,
         type=float,
         metavar=("X1", "Y1", "X2", "Y2"),
         default=None,
         help="Cloth box coordinates. Reused on local frame 0 of every processed chunk.",
-    )
+    ) """
 
     parser.add_argument(
         "--point",
@@ -328,7 +329,7 @@ def main() -> None:
 
     if args.save_overlays:
         # For full overwrite runs, clear old overlays.
-        # For correction-only runs, keep existing overlays but overwrite corrected frame overlays.
+        # For correction runs, keep existing overlays but overwrite corrected frame overlays.
         if overlay_dir.exists() and not args.only_correction_chunks:
             shutil.rmtree(overlay_dir)
         overlay_dir.mkdir(parents=True, exist_ok=True)
@@ -548,7 +549,7 @@ def main() -> None:
     print(f"Processed chunks: {processed_chunks}")
     print(f"Skipped chunks: {skipped_chunks}")
 
-    # In correction-only mode, this validates that you already had a complete set.
+    # In correction only mode, this validates that you already had a complete set.
     # In full mode, this validates this run generated a complete set.
     if len(mask_paths) != len(frame_paths):
         missing = len(frame_paths) - len(mask_paths)

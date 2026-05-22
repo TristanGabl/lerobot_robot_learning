@@ -50,7 +50,7 @@ if [ "$PREFETCH" = true ]; then
 fi
 
 # PICK POINTS FROM PREFETCHED FRAMES
-# Sort naturally: frame_5940.png, frame_6480.png, ..., frame_10260.png
+# Sort NATURALLY: frame_5940.png, frame_6480.png, ..., frame_10260.png
 if [ "$PICK_POINTS" = true ]; then
     find "$PREFETCH_FRAMES_DIR" -maxdepth 1 -type f -name 'frame_*.png' \
         | sort -V \

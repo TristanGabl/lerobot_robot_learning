@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """
-Wayland-compatible GUI for LeRobot Data Collection.
+Wayland-compatible GUI for LeRobot recording.
 
-This script acts as a graphical wrapper around the `lerobot-record` process. 
-Because Wayland restricts global keyboard listeners (pynput), this GUI uses 
-`unittest.mock.patch` to intercept the internal `init_keyboard_listener` and 
-replace it with a dictionary of events controlled by tkinter buttons.
+Graphical wrapper around the `lerobot-record` process to deal with Wayland 
+restrictions on using global keyboard listeners
 
 Usage:
 You can pass the exact same arguments you would normally pass to `lerobot-record`.
@@ -13,7 +11,7 @@ Example:
     python robot_learning_2026/scripts/record_gui.py \
         --robot.type=so100_follower \
         --robot.port=/dev/tty.usbmodem12345 \
-        --dataset.repo_id="clompa/my_dataset" \
+        --dataset.repo_id="path/to/my_dataset" \
         --dataset.single_task="GUI test task"
 """
 
@@ -141,7 +139,7 @@ class LeRobotRecorderGUI:
 
     def run_recorder_thread(self):
         try:
-            # Monkeypatch the pynput keyboard listener with our GUI events dictionary
+            # Patch the pynput keyboard listener with our GUI events dictionary
             with patch('lerobot.scripts.lerobot_record.init_keyboard_listener', mock_init_keyboard_listener):
                 print("Starting LeRobot dataset recording...")
                 print(f"Propagating sys.argv arguments: {' '.join(sys.argv[1:])}")

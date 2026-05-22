@@ -10,6 +10,8 @@ from pathlib import Path
 
 from huggingface_hub import snapshot_download
 
+# NOTE: deprecated -> grayscale is now done in forward pass in diffusion code
+
 
 def run(cmd: list[str], *, check: bool = True) -> subprocess.CompletedProcess:
     print("+", " ".join(cmd))

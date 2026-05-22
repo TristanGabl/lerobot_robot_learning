@@ -9,6 +9,10 @@ import cv2
 
 
 def ffprobe_frame_count(path: Path) -> int | None:
+    """
+    Get frame count of a video
+    """
+    
     cmd = [
         "ffprobe",
         "-v",
@@ -29,21 +33,20 @@ def ffprobe_frame_count(path: Path) -> int | None:
         return None
 
 
-import tempfile
+""" import tempfile
 import subprocess
 from pathlib import Path
-import cv2
+import cv2 """
 
 
 def read_frame(video_path: Path, frame_idx: int):
     """
-    Read a specific frame using ffmpeg instead of cv2.VideoCapture.
-    This is more robust for AV1 videos.
+    Read a specific frame using ffmpeg
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         out_path = Path(tmpdir) / "frame.png"
 
-        # select exact 0-based frame number
+        # select exact frame number
         vf = f"select=eq(n\\,{frame_idx})"
 
         cmd = [
@@ -75,7 +78,7 @@ def main() -> None:
         description="Click SAM2 positive/negative points on a chosen video frame."
     )
     parser.add_argument("--video", default=None, help="Input video path.")
-    parser.add_argument("--frame", type=int, default=0, help="0-based frame index.")
+    parser.add_argument("--frame", type=int, default=0, help="Frame index.")
     parser.add_argument(
         "--scale",
         type=float,
@@ -117,7 +120,7 @@ def main() -> None:
         if frame is None:
             raise RuntimeError(f"Could not read image: {image_path}")
     else:
-        # Here video_path is guaranteed not None because of the check above.
+        # Here video_path is guaranteed not None because of check above
         frame_count = ffprobe_frame_count(video_path)
         if frame_count is not None and args.frame >= frame_count:
             raise ValueError(f"--frame {args.frame} outside video range 0..{frame_count - 1}")
@@ -130,19 +133,20 @@ def main() -> None:
     if args.scale <= 0:
         raise ValueError("--scale must be > 0")
 
-    clicked: list[tuple[int, int, int]] = []  # x, y, label
+    # x, y label for each click
+    clicked: list[tuple[int, int, int]] = []
 
     #win = f"{video_path.name} frame={args.frame} | left=pos right=neg u=undo c=clear q=quit"
     win = f"{video_name} frame={args.frame} | left=pos right=neg u=undo c=clear q=quit"
 
     def redraw():
-        nonlocal vis
+        nonlocal vis # use nonlocal to modify the outer scope variable
         vis = original.copy()
 
         for x, y, label in clicked:
             color = (0, 255, 0) if label == 1 else (0, 0, 255)
             text = "P" if label == 1 else "N"
-            cv2.circle(vis, (x, y), 7, color, -1)
+            cv2.circle(vis, (x, y), 7, color,-1)
             cv2.circle(vis, (x, y), 10, (255, 255, 255), 2)
             cv2.putText(
                 vis,
@@ -187,7 +191,7 @@ def main() -> None:
         x = max(0, min(w - 1, x))
         y = max(0, min(h - 1, y))
 
-        # Shift + left click = negative, plain left click = positive
+        # Shift + left click = negative (NOTE: right click gave problem), plain left click = positive
         label = 0 if (flags & cv2.EVENT_FLAG_SHIFTKEY) else 1
 
         clicked.append((x, y, label))
@@ -196,13 +200,10 @@ def main() -> None:
 
     redraw()
 
-    # Using WINDOW_NORMAL allows the window to be resized.
-    # WINDOW_KEEPRATIO ensures the image aspect ratio is maintained.
+    # enable resize but keep aspect ratio
     cv2.namedWindow(win, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
     
-    # Resize the window so it fits well on typical screens (e.g. max 1600x900)
-    # OpenCV handles scaling the visual display and automatically maps mouse 
-    # coordinates back to the original image dimensions.
+    # Resize the window, maps coordinates back to the original image dimensions
     h, w = original.shape[:2]
     scale_fit = min(1600 / max(w, 1), 900 / max(h, 1))
     if scale_fit < 1.0:
@@ -226,9 +227,11 @@ def main() -> None:
         key = cv2.waitKey(20) & 0xFF
 
         if key == ord("q") or key == 27:
+            # quit on q, this can also be used to go to next frame for batch processing with pick_points_batches.sh
             break
         elif key == ord("u"):
             if clicked:
+                # NOTE: this will leave the last click in the list, remember to delete it if you use that format
                 removed = clicked.pop()
                 print(f"# undo {removed}")
                 redraw()
@@ -246,6 +249,7 @@ def main() -> None:
     cv2.destroyAllWindows()
 
     print("\n# Copy/paste:")
+    # ready to copy paste the printed points into the gen_masks scripts
     for x, y, label in clicked:
         if args.correction_mode:
             print(f"  --correction {args.frame}:{x},{y},{label} \\")
